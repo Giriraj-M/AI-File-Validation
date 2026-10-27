@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Security Dashboard - FileGuard AI{% endblock %}
+
+{% block content %}
+<div class="container dashboard-layout">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-title">Security & Validation Dashboard</h1>
+            <p class="dashboard-subtitle">Real-time audit log, file type distribution, and verification metrics.</p>
+        </div>
+        <div>
+            <button type="button" id="clearHistoryBtn" class="btn btn-outline-danger">
+                🗑️ Clear Audit Log
+            </button>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-icon">📁</span>
+            <div class="stat-content">
+                <span class="stat-value">{{ stats.total_validated }}</span>
+                <span class="stat-label">Total Files Validated</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-success">
+            <span class="stat-icon">✓</span>
+            <div class="stat-content">
+                <span class="stat-value">{{ stats.passed_count }}</span>
+                <span class="stat-label">Passed Validations</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-danger">
+            <span class="stat-icon">⚠️</span>
+            <div class="stat-content">
+                <span class="stat-value">{{ stats.failed_count }}</span>
+                <span class="stat-label">Blocked / Failed</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-info">
+            <span class="stat-icon">🎯</span>
+            <div class="stat-content">
+                <span class="stat-value">{{ stats.avg_score }}%</span>
+                <span class="stat-label">Average Validation Score</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supported & Detected File Types Breakdown -->
+    <div class="card dashboard-section">
+        <h3 class="section-title">Detected File Type Breakdown</h3>
+        {% if stats.type_breakdown %}
+            <div class="type-tags-container">
+                {% for ftype, count in stats.type_breakdown.items() %}
+                    <div class="type-tag">
+                        <span class="type-name">{{ ftype }}</span>
+                        <span class="type-badge">{{ count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-text">No file validations recorded yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Validations Audit Table -->
+    <div class="card dashboard-section">
+        <h3 class="section-title">Recent Validations Audit Log</h3>
+        
+        {% if records %}
+            <div class="table-responsive">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th class="col-timestamp">Timestamp</th>
+                            <th class="col-filename">Filename</th>
+                            <th class="col-type">Detected Type</th>
+                            <th class="col-size">Size</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-score">Score</th>
+                            <th class="col-prompt">User Requirements</th>
+                            <th class="col-details" style="min-width: 140px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in records %}
+                            <tr id="row-{{ item.id or loop.index }}">
+                                <td class="mono-text col-timestamp">{{ item.timestamp }}</td>
+                                <td class="col-filename" title="{{ item.filename }}"><strong>{{ item.filename }}</strong></td>
+                                <td class="col-type"><span class="badge badge-meta">{{ item.detected_type }}</span></td>
+                                <td class="col-size">{{ item.file_size_human }}</td>
+                                <td class="col-status">
+                                    {% if item.status == 'passed' %}
+                                        <span class="badge badge-success">✓ PASS</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">✗ FAIL</span>
+                                    {% endif %}
+                                </td>
+                                <td class="col-score">
+                                    <span class="score-badge {% if item.score >= 80 %}score-high{% elif item.score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                                        {{ item.score }}%
+                                    </span>
+                                </td>
+                                <td class="prompt-col col-prompt" title="{{ item.prompt }}">{{ item.prompt or "Default rules" }}</td>
+                                <td class="col-details">
+                                    <div style="display: inline-flex; gap: 6px; align-items: center;">
+                                        <button type="button" class="btn-sm btn-outline view-details-btn" 
+                                                data-details='{{ item | tojson }}'>
+                                            👁️ View
+                                        </button>
+                                        <button type="button" class="btn-sm btn-outline-danger delete-record-btn" 
+                                                data-id="{{ item.id or item.timestamp }}"
+                                                data-filename="{{ item.filename }}"
+                                                title="Delete this record">
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🛡️</div>
+                <h4>No Validation Records</h4>
+                <p>Run your first validation from the Assistant to populate the audit log.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Assistant</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle">Validation Record Details</h3>
+            <button type="button" id="closeModalBtn" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Populated dynamically via JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Modal Handling
+    const modal = document.getElementById("detailsModal");
+    const modalBody = document.getElementById("modalBody");
+    const closeBtn = document.getElementById("closeModalBtn");
+    
+    document.querySelectorAll(".view-details-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const data = JSON.parse(btn.getAttribute("data-details"));
+            modalBody.innerHTML = `
+                <div class="modal-detail-row"><strong>Timestamp:</strong> <span class="mono-text">${data.timestamp || 'N/A'}</span></div>
+                <div class="modal-detail-row"><strong>File:</strong> <span>${data.filename}</span></div>
+                <div class="modal-detail-row"><strong>Type:</strong> <span>${data.detected_type}</span></div>
+                <div class="modal-detail-row"><strong>Size:</strong> <span>${data.file_size_human}</span></div>
+                <div class="modal-detail-row"><strong>Status:</strong> <span class="badge ${data.status === 'passed' ? 'badge-success' : 'badge-danger'}">${data.status.toUpperCase()} (${data.score}%)</span></div>
+                <div class="modal-detail-row"><strong>User Prompt:</strong> <em>"${data.prompt || 'None'}"</em></div>
+                ${data.violations && data.violations.length > 0 ? `
+                    <div class="modal-violations">
+                        <strong>Violations:</strong>
+                        <ul>${data.violations.map(v => `<li>${v}</li>`).join('')}</ul>
+                    </div>
+                ` : '<div class="text-success" style="margin: 12px 0;">✓ No violations recorded.</div>'}
+                <div class="modal-ai-box">
+                    <strong>AI Analysis:</strong>
+                    <p>${data.ai_analysis || 'N/A'}</p>
+                </div>
+            `;
+            modal.style.display = "flex";
+        });
+    });
+
+    closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
+    window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+
+    // Delete Single Record
+    document.querySelectorAll(".delete-record-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const recordId = btn.getAttribute("data-id");
+            const fname = btn.getAttribute("data-filename") || "this record";
+            if (!recordId) return;
+
+            if (confirm(`Are you sure you want to delete the validation log for "${fname}"?`)) {
+                try {
+                    btn.disabled = true;
+                    btn.innerText = "Deleting...";
+                    const res = await fetch(`/api/history/${encodeURIComponent(recordId)}/delete`, {
+                        method: "POST"
+                    });
+                    if (res.ok) {
+                        const tr = btn.closest("tr");
+                        if (tr) {
+                            tr.style.transition = "all 0.3s ease";
+                            tr.style.opacity = "0";
+                            tr.style.transform = "translateX(20px)";
+                            setTimeout(() => {
+                                tr.remove();
+                                const tbody = document.querySelector(".audit-table tbody");
+                                if (!tbody || tbody.children.length === 0) {
+                                    window.location.reload();
+                                }
+                            }, 300);
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = "🗑️ Delete";
+                        alert("Failed to delete record. Please try again.");
+                    }
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.innerHTML = "🗑️ Delete";
+                    alert("Error deleting record: " + err.message);
+                }
+            }
+        });
+    });
+
+    // Clear History
+    const clearBtn = document.getElementById("clearHistoryBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", async () => {
+            if (confirm("Are you sure you want to clear the validation audit log?")) {
+                const res = await fetch("/api/clear-history", { method: "POST" });
+                if (res.ok) {
+                    sessionStorage.removeItem("fileguard_last_result");
+                    window.location.reload();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

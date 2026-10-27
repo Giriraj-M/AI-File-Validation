@@ -1,0 +1,74 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & Linting caches
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.ruff_cache/
+.mypy_cache/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# Instance runtime directories
+instance/uploads/*
+instance/temp_corrupted/*
+instance/recovered_files/*
+instance/reports/*
+!instance/uploads/.gitkeep
+!instance/temp_corrupted/.gitkeep
+!instance/recovered_files/.gitkeep
+!instance/reports/.gitkeep
+
+# Local environment configuration
+.env.local
+
+.env
+
+.env.*
+
+!.env.example

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Assistant - FileGuard AI{% endblock %}
+
+{% block content %}
+<div class="container assistant-layout">
+    <!-- Hero / Intro -->
+    <section class="assistant-hero">
+        <div class="hero-badge">AI-Powered File Validation</div>
+        <h1 class="hero-title">Validate Files with Natural Language</h1>
+        <p class="hero-subtitle">
+            Enter your validation prompt in plain English, attach your document, and FileGuard AI will parse the rules, verify byte signatures, check size constraints, and inspect document security.
+        </p>
+    </section>
+
+    <!-- Main Chat / Assistant Card -->
+    <div class="card assistant-card">
+        <!-- Assistant Message Bubble -->
+        <div class="chat-message assistant-bubble">
+            <div class="avatar">🤖</div>
+            <div class="bubble-content">
+                <strong>FileGuard Assistant</strong>
+                <p>Upload a file and specify your validation rules. FileGuard AI validates the file type and size constraints against your instructions.</p>
+                
+                <!-- Quick Preset Prompts -->
+                <div class="presets-section">
+                    <span class="presets-label">Try a prompt preset:</span>
+                    <div class="preset-chips">
+                        <button type="button" class="preset-chip" data-prompt="Validate whether this is a valid PDF document and make sure it is below 5 MB.">
+                            📄 PDF under 5 MB
+                        </button>
+                        <button type="button" class="preset-chip" data-prompt="Validate this file. It must be an Excel spreadsheet and should not exceed 2 MB.">
+                            📊 Excel under 2 MB
+                        </button>
+                        <button type="button" class="preset-chip" data-prompt="Validate this Word document and ensure it is under 10 MB.">
+                            📝 Word Doc under 10 MB
+                        </button>
+                        <button type="button" class="preset-chip" data-prompt="Check this image. It should be a PNG or JPEG and less than 1 MB.">
+                            🖼️ PNG/JPG under 1 MB
+                        </button>
+                        <button type="button" class="preset-chip" data-prompt="Ensure this file is a CSV spreadsheet and does not exceed 500 KB.">
+                            📋 CSV under 500 KB
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Form -->
+        <form id="validationForm" class="validation-form" enctype="multipart/form-data">
+            <!-- Prompt Input -->
+            <div class="form-group">
+                <label for="promptInput" class="form-label">
+                    <span>Validation Requirements Prompt</span>
+                    <span class="label-hint">Plain English instruction</span>
+                </label>
+                <textarea 
+                    id="promptInput" 
+                    name="prompt" 
+                    class="prompt-textarea" 
+                    rows="3" 
+                    placeholder="Example: Validate this PDF and make sure it is under 5 MB. Scan for prompt injections and sensitive data..."
+                    required
+                ></textarea>
+            </div>
+
+            <!-- Drag & Drop Attachment Zone -->
+            <div class="form-group">
+                <label class="form-label">File Attachment</label>
+                <div id="dropZone" class="drop-zone">
+                    <input type="file" id="fileInput" name="file" class="file-input-hidden" required>
+                    
+                    <div id="dropZonePrompt" class="drop-zone-content">
+                        <div class="upload-icon">📎</div>
+                        <div class="drop-text">
+                            <strong>Click to browse</strong> or drag & drop your document here
+                        </div>
+                        <span class="drop-hint">Supported: PDF, Word (DOCX), Excel (XLSX), PPTX, PNG, JPG, GIF, TXT, CSV (Up to 32 MB)</span>
+                    </div>
+
+                    <!-- Attached File Info Card (Hidden by default) -->
+                    <div id="attachedCard" class="attached-card" style="display: none;">
+                        <div class="attached-file-icon" id="attachedIcon">📄</div>
+                        <div class="attached-file-details">
+                            <span class="attached-filename" id="attachedName">contract.pdf</span>
+                            <div class="attached-meta">
+                                <span class="badge badge-meta" id="attachedSize">2.4 MB</span>
+                                <span class="badge badge-meta" id="attachedExt">.pdf</span>
+                                <span class="badge badge-success">✓ Attached & Ready</span>
+                            </div>
+                        </div>
+                        <button type="button" id="removeFileBtn" class="btn-remove" title="Remove attached file">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Validation Message -->
+            <div id="clientError" class="alert-error" style="display: none;"></div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg">
+                    <span class="btn-icon">➤</span> Validate File
+                </button>
+                <button type="button" id="resetBtn" class="btn btn-secondary">
+                    <span class="btn-icon">↺</span> Reset
+                </button>
+            </div>
+        </form>
+
+        <!-- Dynamic Multi-Step Processing State (Hidden initially) -->
+        <div id="processingCard" class="processing-card" style="display: none;">
+            <div class="processing-spinner"></div>
+            <h3 class="processing-title">Analyzing File & Requirements...</h3>
+            <p class="processing-subtitle">Our validation engine is evaluating your file against requirements.</p>
+            
+            <ul class="processing-steps">
+                <li id="step-prompt" class="step-item active">
+                    <span class="step-dot"></span>
+                    <span>Interpreting natural language prompt requirements</span>
+                </li>
+                <li id="step-type" class="step-item">
+                    <span class="step-dot"></span>
+                    <span>Validating file type against requirements</span>
+                </li>
+                <li id="step-size" class="step-item">
+                    <span class="step-dot"></span>
+                    <span>Evaluating file size constraints</span>
+                </li>
+                <li id="step-integrity" class="step-item">
+                    <span class="step-dot"></span>
+                    <span>Verifying file integrity & checking for corruption</span>
+                </li>
+                <li id="step-ai" class="step-item">
+                    <span class="step-dot"></span>
+                    <span>Synthesizing validation score & analysis report</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Validation Result Card (Rendered after analysis) -->
+    <div id="resultContainer" class="result-container" style="display: none;">
+        <!-- Dynamic Result Card populated by JS -->
+    </div>
+</div>
+
+<!-- View Recovered Document Modal -->
+<div id="viewRecoveredModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card modal-card-large">
+        <div class="modal-header">
+            <div>
+                <h3 id="asstViewModalTitle">Recovered Document Content Preview</h3>
+                <span class="modal-subtitle" id="asstViewModalMeta"></span>
+            </div>
+            <div class="modal-header-actions">
+                <a href="#" id="asstViewModalDownloadBtn" class="btn-sm btn-primary">⬇️ Download</a>
+                <a href="#" id="asstViewModalRawBtn" target="_blank" class="btn-sm btn-outline">↗ Raw Stream</a>
+                <button type="button" id="closeAsstViewModalBtn" class="modal-close">✕</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="content-preview-container">
+                <div class="content-preview-toolbar">
+                    <span class="badge badge-success">✓ Non-Blank Verified</span>
+                    <span id="asstViewCharCount" class="badge badge-meta">0 characters</span>
+                    <span id="asstViewWordCount" class="badge badge-meta">0 words</span>
+                </div>
+                <div id="asstViewModalContent" class="document-preview-body">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

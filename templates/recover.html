@@ -1,0 +1,1284 @@
+{% extends "base.html" %}
+
+{% block title %}AI Document Recovery Studio - FileGuard AI{% endblock %}
+
+{% block content %}
+<div class="container recovery-layout">
+    <!-- Hero / Intro -->
+    <section class="assistant-hero">
+        <div class="hero-badge hero-badge-recover">🛡️ AI Document Recovery Engine — Forensics Studio</div>
+        <h1 class="hero-title">Corrupted Document Recovery</h1>
+        <p class="hero-subtitle">
+            Upload a corrupted document directly. Deterministic forensic engines execute progressive repairs to recover and synthesize clean, non-blank documents.
+        </p>
+    </section>
+
+
+
+    <!-- Main Recovery Card -->
+    <div class="card recovery-card">
+        <div class="chat-message assistant-bubble">
+            <div class="avatar">🤖</div>
+            <div class="bubble-content">
+                <strong>FileGuard AI Recovery Engine</strong>
+                <p>Drag & drop a damaged document (PDF, DOCX, XLSX, PPTX, Images, CSV, Text). Our multi-strategy pipeline repairs files with 100% verified content synthesis.</p>
+                <div class="recover-notice-badge">
+                    <span class="badge-icon">🛡️</span>
+                    <span><strong>Strict No Blank Recovery Policy:</strong> Every repaired file undergoes structural, raster, and text verification.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <form id="batchRecoveryForm" class="validation-form" enctype="multipart/form-data">
+            <!-- Single File Drop Zone -->
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Select Corrupted File</span>
+                    <span class="label-hint text-primary" id="selectedCountBadge">Select a corrupted file</span>
+                </label>
+                <div id="batchDropZone" class="drop-zone drop-zone-danger">
+                    <input type="file" id="batchFileInput" name="files[]" class="file-input-hidden">
+                    
+                    <div id="batchPrompt" class="drop-zone-content">
+                        <div class="drop-icon">📁</div>
+                        <div class="drop-title">Drag & drop your corrupted file here</div>
+                        <div class="drop-subtitle">or <span class="browse-link">browse file from your computer</span></div>
+                        <div class="drop-formats">Supports PDF, DOCX, XLSX, PPTX, PNG, JPG, WebP, CSV, JSON, TXT (Up to 64MB)</div>
+                    </div>
+
+                    <div id="batchFileListPreview" class="file-selected-box d-none" style="width:100%; text-align:left;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <strong id="batchFileCountText" style="color:#38bdf8; font-size:14px;">1 file staged</strong>
+                            <button type="button" id="clearSelectedBtn" class="btn btn-sm btn-outline-secondary" style="font-size:12px;">Clear File</button>
+                        </div>
+                        <div id="fileItemsList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Action Buttons -->
+            <div class="form-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                <button type="button" id="analyzeBatchBtn" class="btn btn-secondary" style="flex:1; min-width:180px;" disabled>
+                    <span>🔍 Analyze Corruption First</span>
+                </button>
+                <button type="submit" id="recoverBatchBtn" class="btn btn-danger btn-pulse" style="flex:2; min-width:220px;" disabled>
+                    <span>⚡ Recover Corrupted File</span>
+                </button>
+                <button type="button" id="clearTempSessionsBtn" class="btn btn-outline-secondary" style="flex:1; min-width:140px;" title="Safely purge temporary sessions and uploaded files">
+                    <span>🧹 Clear Session</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Live Execution & Progress Stepper -->
+    <div id="recoveryProgressCard" class="card d-none" style="margin-top:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span id="progressStatusIcon" style="display:inline-flex; align-items:center;">
+                    <div class="spinner-border text-primary" style="width:22px; height:22px; border-width:3px;" role="status"></div>
+                </span>
+                <strong id="progressTitle" style="color:#f8fafc; font-size:16px;">Processing File Recovery...</strong>
+            </div>
+            <span id="progressPercentBadge" style="background:#0284c7; color:#fff; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;">In Progress</span>
+        </div>
+
+        <div class="stepper-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:16px;">
+            <div class="step-item step-active" id="step1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Security Scan</div>
+            </div>
+            <div class="step-item" id="step2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Byte Inspection</div>
+            </div>
+            <div class="step-item" id="step3">
+                <div class="step-circle">3</div>
+                <div class="step-label">AI Strategy</div>
+            </div>
+            <div class="step-item" id="step4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Deterministic Repair</div>
+            </div>
+            <div class="step-item" id="step5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Post-Validation</div>
+            </div>
+        </div>
+
+        <div class="progress" style="height:8px; background:#1e293b; border-radius:4px; overflow:hidden;">
+            <div id="progressBarFill" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 20%;"></div>
+        </div>
+    </div>
+
+    <!-- Results Dashboard Section -->
+    <div id="batchResultsSection" class="d-none" style="margin-top:30px;">
+        <div id="fileCardsContainer" style="display:flex; flex-direction:column; gap:16px;"></div>
+    </div>
+
+    <!-- Recovery Analytics & History Dashboard -->
+    <div class="recovery-dashboard-wrapper" style="margin-top:40px;">
+        <!-- Header -->
+        <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
+            <div>
+                <h2 class="dashboard-title" style="font-size:1.6rem; font-weight:800; color:#f8fafc; margin:0 0 6px 0;">🛡️ Document Recovery Dashboard & Audit Log</h2>
+                <p class="dashboard-subtitle" style="color:#94a3b8; font-size:0.95rem; margin:0;">Real-time recovery metrics, detected file type breakdown, and file record audit log.</p>
+            </div>
+            {% if records %}
+            <div>
+                <button type="button" id="clearAllRecoveryBtn" class="btn btn-outline-danger">
+                    🗑️ Clear Audit Log
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="stats-grid" style="margin-bottom:24px;">
+            <div class="stat-card">
+                <span class="stat-icon">📁</span>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.total_recovered }}</span>
+                    <span class="stat-label">Total Files Recovered</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-success">
+                <span class="stat-icon">✓</span>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.successful_count }}</span>
+                    <span class="stat-label">Successfully Recovered</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-danger">
+                <span class="stat-icon">⚠️</span>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.failed_count }}</span>
+                    <span class="stat-label">Blocked / Failed</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-info">
+                <span class="stat-icon">🎯</span>
+                <div class="stat-content">
+                    <span class="stat-value">{{ stats.avg_score }}%</span>
+                    <span class="stat-label">Average Confidence Score</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovered File Types Breakdown -->
+        <div class="card dashboard-section" style="margin-bottom:24px; padding:20px;">
+            <h3 class="section-title">Recovered File Type Breakdown</h3>
+            {% if stats.type_breakdown %}
+                <div class="type-tags-container">
+                    {% for ftype, count in stats.type_breakdown.items() %}
+                        <div class="type-tag">
+                            <span class="type-name">{{ ftype }}</span>
+                            <span class="type-badge">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-text" style="color:#94a3b8; font-size:0.9rem; margin:0;">No document recoveries recorded yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Recoveries Audit Table -->
+        <div class="card dashboard-section" style="padding:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 class="section-title" style="margin:0;">Recent Document Recoveries Audit Log</h3>
+            </div>
+            
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th class="col-timestamp">Timestamp</th>
+                                <th class="col-filename">Document</th>
+                                <th class="col-type">Detected Type</th>
+                                <th class="col-size">Size (Before → After)</th>
+                                <th class="col-status">Status</th>
+                                <th class="col-score">Score</th>
+                                <th style="min-width:180px;">AI Strategy / Engine</th>
+                                <th style="text-align:right; min-width:320px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                                <tr id="recovery-row-{{ r.id }}" data-rec-id="{{ r.id }}">
+                                    <td class="mono-text col-timestamp">{{ r.timestamp }}</td>
+                                    <td class="col-filename" title="{{ r.filename }}">
+                                        <strong>📄 {{ r.filename }}</strong>
+                                    </td>
+                                    <td class="col-type"><span class="badge badge-meta">{{ r.recovered_type or r.original_type }}</span></td>
+                                    <td class="col-size">{{ r.original_size_human }} → {{ r.recovered_size_human }}</td>
+                                    <td class="col-status">
+                                        {% if r.status in ['FULLY_RECOVERED', 'SUCCESS', 'recovered', 'passed'] %}
+                                            <span class="badge badge-success">✓ RECOVERED</span>
+                                        {% elif r.status in ['PARTIALLY_RECOVERED', 'PARTIAL', 'partial'] %}
+                                            <span class="badge badge-warning">⚠️ PARTIAL</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">✗ FAILED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="col-score">
+                                        <span class="score-badge {% if r.confidence_score >= 80 %}score-high{% elif r.confidence_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                                            {{ r.confidence_score }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="font-size:0.85rem; color:#e2e8f0; font-weight:600;">
+                                            {{ r.report.ai_strategy if r.report and r.report.ai_strategy else (r.recovery_method or 'AI Reconstruction') }}
+                                        </div>
+                                    </td>
+                                    <td style="text-align:right; white-space:nowrap;">
+                                        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+                                            <button type="button" class="btn-sm btn-outline view-preview-btn" 
+                                                    data-filename="{{ r.filename }}" 
+                                                    data-preview="{{ (r.preview_snippet or 'Document recovered cleanly.') | urlencode }}" 
+                                                    data-url="/api/recovery/{{ r.id }}/download" 
+                                                    title="Preview Recovered Content">
+                                                👁️ View
+                                            </button>
+                                            <a href="/api/recovery/{{ r.id }}/download" class="btn-sm btn-outline" title="Download Recovered File" download>
+                                                ⬇️ Download
+                                            </a>
+                                            <a href="/api/recovery/{{ r.id }}/report.html" target="_blank" class="btn-sm btn-outline" title="View Forensic HTML Report">
+                                                📑 Report
+                                            </a>
+                                            <button type="button" class="btn-sm btn-outline-danger delete-recovery-btn" 
+                                                    data-rec-id="{{ r.id }}" 
+                                                    data-filename="{{ r.filename }}" 
+                                                    title="Delete this file record">
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state" style="text-align:center; padding:40px 20px;">
+                    <div class="empty-icon" style="font-size:3rem; margin-bottom:12px;">🛡️</div>
+                    <h4>No Document Recovery Records</h4>
+                    <p style="color:#94a3b8; font-size:0.9rem;">Upload corrupted documents above to initiate automated forensic recovery and populate the audit log.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Text Content Viewer Modal -->
+<div id="contentViewerModal" class="modal-backdrop">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h4 id="modalFileTitle" style="color:#f8fafc; margin:0; font-size:17px; font-weight:700;">Document Content Preview</h4>
+            <button type="button" class="btn-close-modal" id="closeModalBtn" title="Close">×</button>
+        </div>
+        <div class="modal-body">
+            <pre id="modalPreviewContent" style="background:#0f172a; color:#e2e8f0; padding:15px; border-radius:8px; max-height:450px; overflow:auto; font-family:monospace; font-size:13px; line-height:1.5; white-space:pre-wrap; word-break:break-word;"></pre>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn btn-secondary" id="closeModalFooterBtn">Close</button>
+            <a id="modalDownloadLink" href="#" class="btn btn-success" download>⬇️ Download Recovered File</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.d-none {
+    display: none !important;
+}
+.stat-mini-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+.stat-val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #38bdf8;
+}
+.stat-lbl {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+.tool-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+}
+.tool-pill-active {
+    color: #10b981;
+    border-color: #10b98155;
+    background: #10b98111;
+}
+.stepper-container .step-item {
+    text-align: center;
+    color: #64748b;
+    transition: color 0.3s ease;
+}
+.stepper-container .step-item.step-active {
+    color: #38bdf8;
+}
+.stepper-container .step-item.step-completed {
+    color: #10b981;
+}
+.step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 2px solid #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+.step-item.step-active .step-circle {
+    border-color: #38bdf8;
+    background: #0284c7;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+.step-item.step-completed .step-circle {
+    border-color: #10b981;
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+.step-label {
+    font-size: 11px;
+    font-weight: 600;
+}
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+.modal-backdrop.show {
+    display: flex !important;
+}
+.modal-dialog {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    padding: 22px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+}
+.btn-close-modal {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 26px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+}
+.btn-close-modal:hover {
+    color: #f8fafc;
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const batchFileInput = document.getElementById("batchFileInput");
+    const batchDropZone = document.getElementById("batchDropZone");
+    const batchPrompt = document.getElementById("batchPrompt");
+    const batchFileListPreview = document.getElementById("batchFileListPreview");
+    const fileItemsList = document.getElementById("fileItemsList");
+    const batchFileCountText = document.getElementById("batchFileCountText");
+    const selectedCountBadge = document.getElementById("selectedCountBadge");
+    const clearSelectedBtn = document.getElementById("clearSelectedBtn");
+    const analyzeBatchBtn = document.getElementById("analyzeBatchBtn");
+    const recoverBatchBtn = document.getElementById("recoverBatchBtn");
+    const batchRecoveryForm = document.getElementById("batchRecoveryForm");
+    const recoveryProgressCard = document.getElementById("recoveryProgressCard");
+    const batchResultsSection = document.getElementById("batchResultsSection");
+    const fileCardsContainer = document.getElementById("fileCardsContainer");
+
+    let stagedFiles = [];
+
+    // Reset initial UI state
+    if (recoveryProgressCard) recoveryProgressCard.classList.add("d-none");
+    if (batchResultsSection) batchResultsSection.classList.add("d-none");
+    if (batchFileListPreview) batchFileListPreview.classList.add("d-none");
+    if (batchPrompt) batchPrompt.classList.remove("d-none");
+
+    // Drag & drop handlers
+    ["dragenter", "dragover"].forEach(event => {
+        batchDropZone.addEventListener(event, e => {
+            e.preventDefault();
+            batchDropZone.classList.add("drop-zone-active");
+        });
+    });
+
+    ["dragleave", "drop"].forEach(event => {
+        batchDropZone.addEventListener(event, e => {
+            e.preventDefault();
+            batchDropZone.classList.remove("drop-zone-active");
+        });
+    });
+
+    batchDropZone.addEventListener("drop", e => {
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files);
+        }
+    });
+
+    batchDropZone.addEventListener("click", e => {
+        if (e.target !== clearSelectedBtn && !e.target.closest("button")) {
+            batchFileInput.click();
+        }
+    });
+
+    batchFileInput.addEventListener("change", e => {
+        if (batchFileInput.files.length > 0) {
+            handleFileSelection(batchFileInput.files);
+        }
+    });
+
+    clearSelectedBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        stagedFiles = [];
+        batchFileInput.value = "";
+        updatePreview();
+    });
+
+    function handleFileSelection(files) {
+        if (files && files.length > 0) {
+            stagedFiles = [files[0]];
+        } else {
+            stagedFiles = [];
+        }
+        updatePreview();
+    }
+
+    function updatePreview() {
+        if (stagedFiles.length === 0) {
+            batchPrompt.classList.remove("d-none");
+            batchFileListPreview.classList.add("d-none");
+            analyzeBatchBtn.disabled = true;
+            recoverBatchBtn.disabled = true;
+            selectedCountBadge.innerText = "Select a corrupted file";
+            fileItemsList.innerHTML = "";
+            return;
+        }
+
+        batchPrompt.classList.add("d-none");
+        batchFileListPreview.classList.remove("d-none");
+        analyzeBatchBtn.disabled = false;
+        recoverBatchBtn.disabled = false;
+
+        batchFileCountText.innerText = "1 file staged for recovery";
+        selectedCountBadge.innerText = "1 file selected";
+
+        const f = stagedFiles[0];
+        fileItemsList.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:10px 14px; border-radius:8px; font-size:13px; border:1px solid #334155;">
+                <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
+                    <span style="font-size:20px;">📄</span>
+                    <div>
+                        <strong style="color:#f8fafc; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; display:block;">${f.name}</strong>
+                        <span style="color:#94a3b8; font-size:11px;">${formatBytes(f.size)}</span>
+                    </div>
+                </div>
+                <span class="badge" style="background:#0284c7; color:#fff; font-size:11px; padding:4px 10px; border-radius:6px; font-weight:600;">Staged</span>
+            </div>
+        `;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    }
+
+    // Recover Batch Submission
+    batchRecoveryForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        if (stagedFiles.length === 0) return;
+
+        recoveryProgressCard.classList.remove("d-none");
+        batchResultsSection.classList.add("d-none");
+        recoverBatchBtn.disabled = true;
+        analyzeBatchBtn.disabled = true;
+
+        const progressIcon = document.getElementById("progressStatusIcon");
+        const progressTitle = document.getElementById("progressTitle");
+        const progressBadge = document.getElementById("progressPercentBadge");
+        const progressBar = document.getElementById("progressBarFill");
+
+        // Reset progress UI to initial state
+        if (progressIcon) progressIcon.innerHTML = '<div class="spinner-border text-primary" style="width:22px; height:22px; border-width:3px;" role="status"></div>';
+        if (progressTitle) progressTitle.innerText = "Processing File Recovery...";
+        if (progressBadge) {
+            progressBadge.innerText = "In Progress";
+            progressBadge.style.background = "#0284c7";
+        }
+        if (progressBar) {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-primary";
+            progressBar.style.width = "20%";
+        }
+
+        // Reset step items
+        document.querySelectorAll(".step-item").forEach((el, idx) => {
+            el.classList.remove("step-completed", "step-active");
+            const circle = el.querySelector(".step-circle");
+            if (circle) circle.innerText = idx + 1;
+            if (idx === 0) el.classList.add("step-active");
+        });
+
+        const formData = new FormData();
+        stagedFiles.forEach(f => {
+            formData.append("files[]", f);
+        });
+
+        const selectedToolsMap = {};
+        document.querySelectorAll(".tool-selector").forEach(sel => {
+            const fid = sel.getAttribute("data-file-id");
+            const fname = sel.getAttribute("data-filename");
+            if (fid && sel.value) selectedToolsMap[fid] = sel.value;
+            if (fname && sel.value) selectedToolsMap[fname] = sel.value;
+        });
+        formData.append("selected_tools", JSON.stringify(selectedToolsMap));
+
+        const recoveryPromptInput = document.getElementById("recoveryInstructions");
+        if (recoveryPromptInput && recoveryPromptInput.value) {
+            formData.append("prompt", recoveryPromptInput.value);
+        }
+
+        // Simulated progression through forensic stages
+        let stepIdx = 1;
+        const interval = setInterval(() => {
+            if (stepIdx < 5) {
+                document.querySelectorAll(".step-item").forEach((el, idx) => {
+                    if (idx < stepIdx) {
+                        el.classList.remove("step-active");
+                        el.classList.add("step-completed");
+                        const circle = el.querySelector(".step-circle");
+                        if (circle) circle.innerText = "✓";
+                    } else if (idx === stepIdx) {
+                        el.classList.add("step-active");
+                    }
+                });
+                if (progressBar) progressBar.style.width = `${(stepIdx + 1) * 20}%`;
+                stepIdx++;
+            }
+        }, 600);
+
+        try {
+            const resp = await fetch("/api/recover/batch", {
+                method: "POST",
+                body: formData
+            });
+            clearInterval(interval);
+            const data = await resp.json();
+
+            recoverBatchBtn.disabled = false;
+            analyzeBatchBtn.disabled = false;
+
+            if (data.success) {
+                // Set completed status briefly then show results
+                if (progressIcon) progressIcon.innerHTML = '<span style="font-size:22px;">✅</span>';
+                if (progressTitle) progressTitle.innerText = "Recovery Complete";
+                if (progressBadge) {
+                    progressBadge.innerText = "✓ Finished";
+                    progressBadge.style.background = "#10b981";
+                }
+                if (progressBar) {
+                    progressBar.className = "progress-bar bg-success";
+                    progressBar.style.width = "100%";
+                }
+
+                document.querySelectorAll(".step-item").forEach((el) => {
+                    el.classList.remove("step-active");
+                    el.classList.add("step-completed");
+                    const circle = el.querySelector(".step-circle");
+                    if (circle) circle.innerText = "✓";
+                });
+
+                setTimeout(() => {
+                    recoveryProgressCard.classList.add("d-none");
+                }, 800);
+
+                renderBatchResults(data);
+            } else {
+                if (progressIcon) progressIcon.innerHTML = '<span style="font-size:22px;">❌</span>';
+                if (progressTitle) progressTitle.innerText = "Recovery Encountered an Error";
+                if (progressBadge) {
+                    progressBadge.innerText = "Failed";
+                    progressBadge.style.background = "#ef4444";
+                }
+                if (progressBar) {
+                    progressBar.className = "progress-bar bg-danger";
+                    progressBar.style.width = "100%";
+                }
+                alert("Batch recovery error: " + (data.error || "Unknown server error"));
+            }
+        } catch (err) {
+            clearInterval(interval);
+            recoverBatchBtn.disabled = false;
+            analyzeBatchBtn.disabled = false;
+            if (progressIcon) progressIcon.innerHTML = '<span style="font-size:22px;">❌</span>';
+            if (progressTitle) progressTitle.innerText = "Network Error During Recovery";
+            if (progressBadge) {
+                progressBadge.innerText = "Error";
+                progressBadge.style.background = "#ef4444";
+            }
+            if (progressBar) {
+                progressBar.className = "progress-bar bg-danger";
+                progressBar.style.width = "100%";
+            }
+            alert("Network error occurred during batch recovery: " + err.message);
+        }
+    });
+
+    // Analyze Batch Button
+    analyzeBatchBtn.addEventListener("click", async function() {
+        if (stagedFiles.length === 0) return;
+
+        const formData = new FormData();
+        stagedFiles.forEach(f => formData.append("files[]", f));
+
+        analyzeBatchBtn.disabled = true;
+        analyzeBatchBtn.innerText = "Analyzing...";
+
+        recoveryProgressCard.classList.remove("d-none");
+        batchResultsSection.classList.add("d-none");
+
+        const progressIcon = document.getElementById("progressStatusIcon");
+        const progressTitle = document.getElementById("progressTitle");
+        const progressBadge = document.getElementById("progressPercentBadge");
+        const progressBar = document.getElementById("progressBarFill");
+
+        if (progressIcon) progressIcon.innerHTML = '<div class="spinner-border text-primary" style="width:22px; height:22px; border-width:3px;" role="status"></div>';
+        if (progressTitle) progressTitle.innerText = "Analyzing Corruption Patterns...";
+        if (progressBadge) {
+            progressBadge.innerText = "Analyzing";
+            progressBadge.style.background = "#f59e0b";
+        }
+        if (progressBar) {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning";
+            progressBar.style.width = "50%";
+        }
+
+        try {
+            const resp = await fetch("/api/analyze/batch", { method: "POST", body: formData });
+            const data = await resp.json();
+            analyzeBatchBtn.disabled = false;
+            analyzeBatchBtn.innerText = "🔍 Analyze Corruption First";
+
+            if (data.success) {
+                if (progressIcon) progressIcon.innerHTML = '<span style="font-size:22px;">🔍</span>';
+                if (progressTitle) progressTitle.innerText = "Analysis Complete";
+                if (progressBadge) {
+                    progressBadge.innerText = "✓ Analyzed";
+                    progressBadge.style.background = "#38bdf8";
+                }
+                if (progressBar) {
+                    progressBar.className = "progress-bar bg-info";
+                    progressBar.style.width = "100%";
+                }
+                renderPreAnalysisCards(data.files);
+            } else {
+                alert("Analysis failed: " + (data.error || "Unknown server error"));
+            }
+        } catch (e) {
+            analyzeBatchBtn.disabled = false;
+            analyzeBatchBtn.innerText = "🔍 Analyze Corruption First";
+            alert("Analysis failed: " + e.message);
+        }
+    });
+
+    function renderPreAnalysisCards(files) {
+        batchResultsSection.classList.remove("d-none");
+        fileCardsContainer.innerHTML = files.map(f => {
+            const classif = f.corruption_classification || {};
+            const rec = f.tool_recommendation || {};
+            const primary = rec.primary_tool || {};
+            const primaryToolName = primary.name || f.ai_plan?.recommended_tool || "Deterministic Recovery Engine";
+            const primaryInstalled = primary.is_installed !== undefined ? primary.is_installed : true;
+            const primaryGuide = primary.install_guide || "";
+            const rationale = rec.reason || f.ai_plan?.reason || "Specialized deterministic repair pipeline.";
+            const limitations = classif.expected_limitations || "Partial data loss possible if streams are truncated.";
+            const alternatives = rec.alternative_tools || [];
+
+            // 5 Forensic Regions: Header, Body, Reference, EOF, Image
+            const rawRegions = classif.regions || {};
+            const standardRegions = [
+                {
+                    key: "header",
+                    name: "Header",
+                    icon: "🏷️",
+                    defaultTool: "qpdf",
+                    defaultPurpose: "Realigns displaced magic bytes and restores valid header signature."
+                },
+                {
+                    key: "body",
+                    name: "Body",
+                    icon: "📄",
+                    defaultTool: "pymupdf",
+                    defaultPurpose: "Carves surviving page objects, extracts content streams, and restores document tree."
+                },
+                {
+                    key: "reference",
+                    name: "Reference",
+                    icon: "🔗",
+                    defaultTool: "qpdf",
+                    defaultPurpose: "Recalculates object byte offsets and rebuilds healthy cross-reference tables."
+                },
+                {
+                    key: "eof",
+                    name: "EOF",
+                    icon: "🏁",
+                    defaultTool: "qpdf",
+                    defaultPurpose: "Appends missing %%EOF marker, terminates truncated streams, and seals document."
+                },
+                {
+                    key: "image",
+                    name: "Image",
+                    icon: "🖼️",
+                    defaultTool: "pillow",
+                    defaultPurpose: "Extracts and repairs embedded JPEG/PNG image streams and raster graphics."
+                }
+            ];
+
+            const evaluatedRegions = standardRegions.map(regMeta => {
+                const r = rawRegions[regMeta.key] || {};
+                const isCorrupt = r.is_corrupted !== undefined ? r.is_corrupted : (
+                    r.status === "CORRUPTED" ||
+                    (classif.defects || []).some(d => d.toLowerCase().includes(regMeta.key))
+                );
+
+                const defectsList = r.defects || [];
+                let toolName = r.tool_name || r.recommended_tool || regMeta.defaultTool;
+                const fmtUpper = ((f.detected_type || "") + " " + (classif.file_type || "")).toUpperCase();
+                if (fmtUpper.includes("PDF") || (!fmtUpper.includes("DOC") && !fmtUpper.includes("XLS") && !fmtUpper.includes("IMAGE") && !fmtUpper.includes("TXT"))) {
+                    if (regMeta.key === "header" || regMeta.key === "reference" || regMeta.key === "eof") {
+                        toolName = "qpdf";
+                    } else if (regMeta.key === "body") {
+                        toolName = "pymupdf";
+                    } else if (regMeta.key === "image") {
+                        toolName = "pillow";
+                    }
+                }
+                const toolPurpose = r.tool_purpose || regMeta.defaultPurpose;
+
+                return {
+                    key: regMeta.key,
+                    name: regMeta.name,
+                    icon: regMeta.icon,
+                    is_corrupted: isCorrupt,
+                    status: isCorrupt ? "CORRUPTED" : "INTACT",
+                    defects: defectsList,
+                    tool_name: toolName,
+                    tool_purpose: toolPurpose
+                };
+            });
+
+            const corruptedCount = evaluatedRegions.filter(r => r.is_corrupted).length;
+            const isCorrupted = classif.is_corrupted !== false && (corruptedCount > 0 || classif.corruption_type !== "CLEAN");
+
+            // Candidate tools for manual dropdown selection
+            const candidateTools = f.available_candidate_tools || [];
+            const candidateOptions = candidateTools.map(t => `
+                <option value="${t.id}">${t.name} (${t.is_installed ? 'Installed' : 'Missing'})</option>
+            `).join("");
+
+            // Resolve command-level strategy tools matching forensic report cards
+            let strategyTools = f.strategy_tools || f.recommended_strategies || [];
+            if ((!strategyTools || strategyTools.length === 0) && f.raw_analysis && f.raw_analysis.recommended_tools) {
+                strategyTools = f.raw_analysis.recommended_tools;
+            }
+            if (!strategyTools || strategyTools.length === 0) {
+                const fmtUpper = (f.detected_type || 'PDF').toUpperCase();
+                if (fmtUpper.includes('PDF')) {
+                    strategyTools = [
+                        {
+                            tool: "qpdf",
+                            command: "qpdf --check input.pdf ; qpdf --repair-file input.pdf recovered.pdf",
+                            approach: "Rebuilds cross-reference table and recalculates trailer dictionaries from surviving object graph."
+                        },
+                        {
+                            tool: "mutool",
+                            command: "mutool clean -d -g input.pdf recovered.pdf",
+                            approach: "MuPDF parser repairs broken xref offsets and sanitizes syntax trees."
+                        }
+                    ];
+                } else if (fmtUpper.includes('DOC') || fmtUpper.includes('WORD')) {
+                    strategyTools = [
+                        {
+                            tool: "7-Zip / Package Salvager",
+                            command: "7z x -tzip input.docx -oextracted ; 7z a -tzip recovered.docx ./extracted/*",
+                            approach: "Extracts surviving XML parts, repairs ZIP local header CRC descriptors, and rebuilds valid package."
+                        },
+                        {
+                            tool: "python-docx / lxml",
+                            command: "python-docx (Deep Document XML Sanitizer)",
+                            approach: "Parses word/document.xml, balances unclosed tags, and reconstructs paragraph and table runs."
+                        }
+                    ];
+                } else if (fmtUpper.includes('XLS') || fmtUpper.includes('EXCEL')) {
+                    strategyTools = [
+                        {
+                            tool: "openpyxl Data Carver",
+                            command: "openpyxl.load_workbook(input.xlsx, data_only=True)",
+                            approach: "Extracts surviving sheet XML cells, formulas, and dimensions into a clean workbook."
+                        },
+                        {
+                            tool: "7-Zip / Deflate Salvager",
+                            command: "7z t -tzip input.xlsx ; fix_deflate input.xlsx",
+                            approach: "Repairs broken ZIP compression streams and restores sheet relationship tables."
+                        }
+                    ];
+                } else if (fmtUpper.includes('IMAGE') || fmtUpper.includes('JPG') || fmtUpper.includes('PNG') || fmtUpper.includes('WEBP')) {
+                    strategyTools = [
+                        {
+                            tool: "Pillow / ImageMagick",
+                            command: "magick identify -verbose input.jpg ; magick input.jpg -auto-orient recovered.jpg",
+                            approach: "Restores missing SOI/EOI magic markers and rebuilds damaged color channel tables."
+                        },
+                        {
+                            tool: "jpegtran / pngcheck",
+                            command: "jpegtran -copy none -optimize input.jpg recovered.jpg",
+                            approach: "Re-encodes surviving DCT coefficients and repairs corrupted Huffman scanlines."
+                        }
+                    ];
+                } else {
+                    strategyTools = [
+                        {
+                            tool: "ftfy / iconv Normalizer",
+                            command: "iconv -f utf-8 -t utf-8 -c input.txt recovered.txt",
+                            approach: "Normalizes multi-byte encodings and strips corrupted ASCII / BOM sequences."
+                        },
+                        {
+                            tool: "json_repair",
+                            command: "json_repair.repair_json(raw_input_text)",
+                            approach: "Balances unclosed quotes and brackets, removes trailing commas, and realigns syntax."
+                        }
+                    ];
+                }
+            }
+
+            return `
+            <div class="pre-analysis-card" style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:22px; margin-bottom:16px;">
+                <!-- Title and Overall Classification Badge -->
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span style="font-size:22px;">📄</span>
+                            <strong style="color:#f8fafc; font-size:17px;">${f.filename}</strong>
+                            <span style="background:#0284c722; color:#38bdf8; border:1px solid #0284c755; padding:3px 10px; border-radius:6px; font-weight:700; font-size:12px;">
+                                Format: ${f.detected_type}
+                            </span>
+                        </div>
+                        <div style="color:#94a3b8; font-size:12px; margin-top:5px;">
+                            Size: <strong>${f.size_human || f.size}</strong> | Integrity: <strong style="color:${isCorrupted ? '#ef4444' : '#10b981'};">${isCorrupted ? 'CORRUPTED' : 'INTACT'}</strong> | Recoverability: <strong style="color:#10b981;">${f.recoverability || 'HIGH'}</strong>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="background:${isCorrupted ? '#ef444422' : '#10b98122'}; color:${isCorrupted ? '#ef4444' : '#10b981'}; border:1px solid ${isCorrupted ? '#ef444455' : '#10b98155'}; padding:5px 12px; border-radius:8px; font-weight:800; font-size:13px; display:inline-block;">
+                            ${isCorrupted ? '⚠️ CORRUPTION DETECTED' : '✓ INTACT DOCUMENT'}
+                        </span>
+                        <div style="color:#94a3b8; font-size:11px; margin-top:4px;">
+                            Diagnosis Confidence: <strong style="color:#38bdf8;">${Math.round((classif.confidence || 0.90) * 100)}% (${classif.confidence_level || 'HIGH'})</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5-Region Forensic Diagnostic Grid (Header, Body, Reference, EOF, Image) -->
+                <div style="margin-bottom:18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <strong style="color:#e2e8f0; font-size:13px; letter-spacing:0.3px;">
+                            🔬 Forensic Region Diagnostics (Header • Body • Reference • EOF • Images):
+                        </strong>
+                        <span style="font-size:12px;">
+                            ${corruptedCount > 0 ? `<span style="color:#ef4444; font-weight:700;">⚠️ ${corruptedCount} region(s) corrupted</span>` : `<span style="color:#10b981; font-weight:700;">✓ All regions intact</span>`}
+                        </span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:12px;">
+                        ${evaluatedRegions.map(reg => {
+                            const isRegCorrupt = reg.is_corrupted;
+                            const borderColor = isRegCorrupt ? '#ef444466' : '#334155';
+                            const bgColor = isRegCorrupt ? '#271924' : '#0f172a';
+                            const statusColor = isRegCorrupt ? '#ef4444' : '#10b981';
+                            const statusText = isRegCorrupt ? '⚠️ CORRUPTED' : '✓ INTACT';
+
+                            return `
+                            <div style="background:${bgColor}; border:1px solid ${borderColor}; border-radius:10px; padding:12px; display:flex; flex-direction:column; justify-content:space-between;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-size:15px;">${reg.icon}</span>
+                                            <strong style="color:#f8fafc; font-size:13px;">${reg.name}</strong>
+                                        </div>
+                                        <span style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}55; padding:2px 7px; border-radius:4px; font-weight:800; font-size:10px;">
+                                            ${statusText}
+                                        </span>
+                                    </div>
+                                    
+                                    <div style="color:${isRegCorrupt ? '#fca5a5' : '#94a3b8'}; font-size:11px; line-height:1.4; margin-bottom:8px;">
+                                        ${isRegCorrupt ? (reg.defects.length ? reg.defects[0] : 'Structural corruption detected.') : 'Region syntax & structure valid.'}
+                                    </div>
+                                </div>
+
+                                ${isRegCorrupt ? `
+                                <div style="margin-top:6px; padding-top:8px; border-top:1px dashed #ef444444; font-size:11px;">
+                                    <span style="color:#38bdf8; font-weight:700; font-size:10px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Recommended Tool:</span>
+                                    <strong style="color:#f8fafc; font-size:11px; display:block; margin-top:2px;">${reg.tool_name}</strong>
+                                    <span style="color:#94a3b8; font-size:10px; display:block; margin-top:2px; line-height:1.3;">${reg.tool_purpose}</span>
+                                </div>
+                                ` : `
+                                <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #334155; font-size:10px; color:#64748b;">
+                                    No repair required for this region.
+                                </div>
+                                `}
+                            </div>
+                            `;
+                        }).join("")}
+                    </div>
+                </div>
+
+                <!-- Recovery Action -->
+                <div style="display:flex; justify-content:flex-end; align-items:center; border-top:1px solid #334155; padding-top:16px;">
+                    <button type="button" class="btn btn-danger recover-single-card-btn" data-file-id="${f.file_id}" data-filename="${f.filename}" style="font-weight:700; padding:8px 24px; font-size:13px; border-radius:8px;">
+                        ⚡ Recover Corrupted File
+                    </button>
+                </div>
+            </div>
+            `;
+        }).join("");
+
+        // Attach event listeners for per-card individual recovery buttons
+        bindSingleCardRecoveryButtons();
+
+        // Scroll to results
+        batchResultsSection.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function bindSingleCardRecoveryButtons() {
+        document.querySelectorAll(".recover-single-card-btn").forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                const fname = this.getAttribute("data-filename");
+                const fid = this.getAttribute("data-file-id");
+                executeSingleFileRecovery(fname, fid, "auto");
+            });
+        });
+    }
+
+    async function executeSingleFileRecovery(filename, fileId, tool) {
+        const targetFile = stagedFiles.find(f => f.name === filename) || stagedFiles[0];
+        if (!targetFile) return;
+
+        recoveryProgressCard.classList.remove("d-none");
+        batchResultsSection.classList.add("d-none");
+        recoverBatchBtn.disabled = true;
+        analyzeBatchBtn.disabled = true;
+
+        const progressIcon = document.getElementById("progressStatusIcon");
+        const progressTitle = document.getElementById("progressTitle");
+        const progressBadge = document.getElementById("progressPercentBadge");
+        const progressBar = document.getElementById("progressBarFill");
+
+        if (progressIcon) progressIcon.innerHTML = '<div class="spinner-border text-primary" style="width:22px; height:22px; border-width:3px;" role="status"></div>';
+        if (progressTitle) progressTitle.innerText = `Recovering ${filename}...`;
+        if (progressBadge) {
+            progressBadge.innerText = "Processing";
+            progressBadge.style.background = "#0284c7";
+        }
+        if (progressBar) {
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-primary";
+            progressBar.style.width = "40%";
+        }
+
+        const formData = new FormData();
+        formData.append("files[]", targetFile);
+        formData.append("selected_tool", tool);
+        const selMap = {};
+        selMap[fileId] = tool;
+        selMap[filename] = tool;
+        formData.append("selected_tools", JSON.stringify(selMap));
+
+        try {
+            const resp = await fetch("/api/recover/batch", { method: "POST", body: formData });
+            const data = await resp.json();
+            recoverBatchBtn.disabled = false;
+            analyzeBatchBtn.disabled = false;
+
+            if (data.success) {
+                if (progressBar) progressBar.style.width = "100%";
+                setTimeout(() => { recoveryProgressCard.classList.add("d-none"); }, 600);
+                renderBatchResults(data);
+            } else {
+                alert("Recovery failed: " + (data.error || "Unknown error"));
+            }
+        } catch (err) {
+            recoverBatchBtn.disabled = false;
+            analyzeBatchBtn.disabled = false;
+            alert("Recovery network error: " + err.message);
+        }
+    }
+
+    function renderBatchResults(data) {
+        batchResultsSection.classList.remove("d-none");
+        fileCardsContainer.innerHTML = (data.results || []).map(r => {
+            const isSuccess = r.status === "FULLY_RECOVERED" || r.status === "SUCCESS";
+            const isPartial = r.status === "PARTIALLY_RECOVERED" || r.status === "PARTIAL";
+            const color = isSuccess ? "#10b981" : (isPartial ? "#f59e0b" : "#ef4444");
+            const statusLabel = isSuccess ? "Successfully Recovered" : (isPartial ? "Partially Recovered" : "Recovery Failed");
+            const aiStrat = r.ai_strategy || (r.ai_recommendation?.tool ? `Structural ${r.ai_recommendation.tool} Repair` : "Structural Document Reconstruction");
+
+            // Sanitize corruption area to strictly display Header, Body, Reference, EOF, or Images
+            let displayArea = r.corruption_area || '';
+            const severityWords = ['MINOR', 'MODERATE', 'SEVERE', 'CRITICAL', 'NONE', 'HEALTHY', 'UNRECOVERABLE', 'UNKNOWN'];
+            if (!displayArea || severityWords.includes(displayArea.trim().toUpperCase())) {
+                const fn = (r.original_filename || '').toLowerCase();
+                if (fn.includes('header')) displayArea = 'Header';
+                else if (fn.includes('body')) displayArea = 'Body';
+                else if (fn.includes('image') || fn.includes('img')) displayArea = 'Images';
+                else if (fn.includes('eof')) displayArea = 'EOF';
+                else if (fn.includes('xref') || fn.includes('reference')) displayArea = 'Reference';
+                else displayArea = 'Body';
+            }
+            if (displayArea.toLowerCase() === 'image') displayArea = 'Images';
+
+            return `
+            <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:22px;">📄</span>
+                        <div>
+                            <strong style="color:#f8fafc; font-size:16px;">${r.original_filename}</strong>
+                            <div style="color:#94a3b8; font-size:12px;">Type: ${r.detected_type} | ${r.original_size} → ${r.recovered_size}</div>
+                        </div>
+                    </div>
+                    <span style="background:${color}22; color:${color}; border:1px solid ${color}55; padding:5px 12px; border-radius:8px; font-weight:800; font-size:12px;">
+                        ${statusLabel} (${r.recovery_score}%)
+                    </span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; font-size:12px; margin-bottom:12px; background:#0f172a; padding:12px; border-radius:8px;">
+                    <div><span style="color:#94a3b8;">Corruption Detected:</span> <strong style="color:#f8fafc;">${r.corruption_detected || 'Yes'}</strong></div>
+                    <div><span style="color:#94a3b8;">Corruption Area:</span> <strong style="color:#f59e0b;">${displayArea}</strong></div>
+                    <div><span style="color:#94a3b8;">Recovery Status:</span> <strong style="color:${color};">${statusLabel}</strong></div>
+                    <div><span style="color:#94a3b8;">Executed Engine:</span> <strong style="color:#cbd5e1;">${r.executed_tool}</strong></div>
+                </div>
+
+                <div style="background:#0f172a; padding:12px; border-radius:8px; margin-bottom:14px; font-size:12px; line-height:1.6; border-left:3px solid #38bdf8;">
+                    <div style="color:#38bdf8; font-weight:700; margin-bottom:4px; font-size:13px;">
+                        🤖 AI Strategy: ${aiStrat}
+                    </div>
+                    <div style="color:#cbd5e1;">
+                        <strong>Recovery Summary:</strong> ${r.recovery_summary || 'The corrupted document structure was reconstructed and recoverable data streams restored.'}
+                    </div>
+                </div>
+
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                    ${r.view_url ? `<button type="button" class="btn btn-sm btn-outline-info view-preview-btn" data-filename="${r.original_filename}" data-preview="${encodeURIComponent(r.preview_snippet || 'Document recovered cleanly.')}" data-url="${r.download_url || '#'}">👁️ Preview Content</button>` : ''}
+                    ${r.download_url ? `<a href="${r.download_url}" class="btn btn-sm btn-success" download>⬇️ Download File</a>` : ''}
+                    ${r.report_url ? `<a href="${r.report_url}" target="_blank" class="btn btn-sm btn-outline-primary">📑 Forensic Report</a>` : ''}
+                </div>
+            </div>
+            `;
+        }).join("");
+
+        // Attach event listener for preview buttons in newly rendered cards
+        bindPreviewButtons();
+
+        // Scroll to results
+        batchResultsSection.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function bindPreviewButtons() {
+        document.querySelectorAll(".view-preview-btn").forEach(btn => {
+            btn.removeEventListener("click", onPreviewClick);
+            btn.addEventListener("click", onPreviewClick);
+        });
+    }
+
+    function onPreviewClick(e) {
+        const btn = e.currentTarget;
+        const fname = btn.getAttribute("data-filename");
+        const prev = decodeURIComponent(btn.getAttribute("data-preview") || "");
+        const dlUrl = btn.getAttribute("data-url");
+        openContentModal(fname, prev, dlUrl);
+    }
+
+    // Modal helpers
+    window.openContentModal = function(title, content, downloadUrl) {
+        document.getElementById("modalFileTitle").innerText = `📄 ${title || 'Document Preview'}`;
+        document.getElementById("modalPreviewContent").innerText = content || "No extractable text content.";
+        const dlBtn = document.getElementById("modalDownloadLink");
+        if (downloadUrl && downloadUrl !== "#") {
+            dlBtn.href = downloadUrl;
+            dlBtn.classList.remove("d-none");
+        } else {
+            dlBtn.classList.add("d-none");
+        }
+        document.getElementById("contentViewerModal").classList.add("show");
+    };
+
+    window.closeContentModal = function() {
+        document.getElementById("contentViewerModal").classList.remove("show");
+    };
+
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", closeContentModal);
+    }
+
+    const closeModalFooterBtn = document.getElementById("closeModalFooterBtn");
+    if (closeModalFooterBtn) {
+        closeModalFooterBtn.addEventListener("click", closeContentModal);
+    }
+
+    const modalBackdrop = document.getElementById("contentViewerModal");
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener("click", (e) => {
+            if (e.target === modalBackdrop) {
+                closeContentModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeContentModal();
+        }
+    });
+
+    bindPreviewButtons();
+
+    // Delete individual recovery file record
+    function bindDeleteButtons() {
+        document.querySelectorAll(".delete-recovery-btn").forEach(btn => {
+            btn.removeEventListener("click", onDeleteClick);
+            btn.addEventListener("click", onDeleteClick);
+        });
+    }
+
+    async function onDeleteClick(e) {
+        e.stopPropagation();
+        const btn = e.currentTarget;
+        const recId = btn.getAttribute("data-rec-id");
+        const fname = btn.getAttribute("data-filename") || "this file";
+        
+        if (confirm(`Are you sure you want to delete the recovery record for "${fname}"?`)) {
+            try {
+                btn.disabled = true;
+                const res = await fetch(`/api/recovery/${recId}/delete`, { method: "POST" });
+                if (res.ok) {
+                    const row = document.getElementById(`recovery-row-${recId}`) || btn.closest("tr");
+                    if (row) {
+                        row.style.transition = "all 0.3s ease";
+                        row.style.opacity = "0";
+                        row.style.transform = "translateX(20px)";
+                        setTimeout(() => {
+                            row.remove();
+                            const tbody = document.querySelector(".audit-table tbody");
+                            if (!tbody || tbody.children.length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                } else {
+                    alert("Failed to delete record. Please try again.");
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("An error occurred while deleting the record.");
+                btn.disabled = false;
+            }
+        }
+    }
+
+    bindDeleteButtons();
+
+    // Clear All Recovery History
+    const clearBtn = document.getElementById("clearAllRecoveryBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", async () => {
+            if (confirm("Are you sure you want to clear the entire recovery audit log and delete all recovered files?")) {
+                try {
+                    clearBtn.disabled = true;
+                    const res = await fetch("/api/clear-recovery-history", { method: "POST" });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        alert("Failed to clear recovery history.");
+                        clearBtn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error("Clear error:", err);
+                    alert("An error occurred while clearing history.");
+                    clearBtn.disabled = false;
+                }
+            }
+        });
+    }
+
+    // Clear Temporary Session & Staged Files
+    const clearTempSessionsBtn = document.getElementById("clearTempSessionsBtn");
+    if (clearTempSessionsBtn) {
+        clearTempSessionsBtn.addEventListener("click", async () => {
+            if (confirm("Are you sure you want to clear temporary staged files and reset the workbench?")) {
+                try {
+                    await fetch("/api/clean-temp", { method: "POST" });
+                    stagedFiles = [];
+                    batchFileInput.value = "";
+                    updatePreview();
+                    batchResultsSection.classList.add("d-none");
+                    recoveryProgressCard.classList.add("d-none");
+                } catch (e) {
+                    console.error("Clean error:", e);
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

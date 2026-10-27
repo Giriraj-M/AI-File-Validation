@@ -1,0 +1,877 @@
+{% extends "base.html" %}
+
+{% block title %}Controlled Document Corruption Studio - FileGuard AI{% endblock %}
+
+{% block content %}
+<div class="container recovery-layout">
+    <!-- Hero / Intro -->
+    <section class="assistant-hero">
+        <div class="hero-badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">
+            ⚡ Controlled Document Corruption Studio — Adversarial Testing & Forensics
+        </div>
+        <h1 class="hero-title">Surgical Document Corruption</h1>
+        <p class="hero-subtitle">
+            Upload files and selectively inject structural defects into specific sections: Header, Body, Reference (XREF), End of File, Images, or All sections simultaneously.
+        </p>
+    </section>
+
+    <!-- Main Corruption Studio Card -->
+    <div class="card recovery-card" style="border-top: 3px solid #ef4444;">
+        <div class="chat-message assistant-bubble">
+            <div class="avatar" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">🧪</div>
+            <div class="bubble-content" style="width: 100%;">
+                <strong style="color: #f87171; display: block; margin-bottom: 6px; font-size: 1rem; font-weight: 700;">FileGuard Forensic Corruption Studio</strong>
+                <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.6; margin-bottom: 14px;">
+                    Select specific structural regions below. If you choose <span style="color: #f87171; font-weight: 700;">Header</span>, only the header bytes are corrupted while the rest of the document remains pristine. Choosing <span style="color: #f87171; font-weight: 700;">All</span> applies simultaneous defects across all 5 structural regions.
+                </p>
+                <div class="recover-notice-badge" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 8px;">
+                    <span class="badge-icon">⚡</span>
+                    <span style="color: #e2e8f0; font-size: 0.86rem;"><strong style="color: #f87171; display: inline; font-weight: 700;">Adversarial Test Generator:</strong> Generates authentic structural defects to validate recovery engines and forensic scanners.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload & Target Form -->
+        <form id="corruptForm" class="validation-form" enctype="multipart/form-data">
+            <!-- File Drop Zone -->
+            <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                    <span style="font-weight:700; font-size:1rem; color:#f8fafc; letter-spacing:0.2px;">
+                        1. Select Target Document
+                    </span>
+                    <span class="label-hint" id="selectedFileHint" style="font-size:0.82rem; color:#38bdf8; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); padding:3px 10px; border-radius:9999px;">
+                        Supported: PDF, DOCX, XLSX, PPTX, JPG, PNG, CSV, TXT
+                    </span>
+                </div>
+                <div id="corruptDropZone" class="drop-zone drop-zone-danger">
+                    <input type="file" id="corruptFileInput" name="file" class="file-input-hidden" accept=".pdf,.docx,.xlsx,.pptx,.jpg,.jpeg,.png,.webp,.csv,.json,.txt">
+                    
+                    <div id="corruptPrompt" class="drop-zone-content">
+                        <div class="drop-icon" style="font-size: 38px;">📁</div>
+                        <div class="drop-title">Drag & drop your document here</div>
+                        <div class="drop-subtitle">or <span class="browse-link">browse file from your device</span></div>
+                        <div class="drop-formats">PDF, Word (DOCX), Excel (XLSX), PPTX, PNG, JPG, CSV, JSON (Up to 64MB)</div>
+                    </div>
+
+                    <div id="corruptFilePreview" class="file-selected-box d-none" style="width:100%; text-align:left;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:28px;">📄</div>
+                                <div>
+                                    <strong id="previewFileName" style="color:#f8fafc; font-size:15px; display:block;">filename.pdf</strong>
+                                    <span id="previewFileSize" style="color:#94a3b8; font-size:12px;">0 KB</span>
+                                </div>
+                            </div>
+                            <button type="button" id="clearFileBtn" class="btn btn-sm btn-outline-secondary" style="font-size:12px;">
+                                ✕ Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Selection Section -->
+            <div class="form-group" style="margin-top: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span style="font-weight:700; font-size:1rem; color:#f8fafc; letter-spacing:0.2px;">
+                            2. Choose Structural Sections to Corrupt
+                        </span>
+                        <span style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:0.78rem; font-weight:500; padding:3px 10px; border-radius:9999px; display:inline-flex; align-items:center; gap:6px;">
+                            <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>
+                            Select individual sections or select ALL
+                        </span>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button type="button" id="selectAllTargetsBtn" class="btn btn-sm btn-outline" style="font-size:12px; padding:5px 12px; border-radius:6px;">
+                            Select All
+                        </button>
+                        <button type="button" id="clearAllTargetsBtn" class="btn btn-sm btn-outline" style="font-size:12px; padding:5px 12px; border-radius:6px;">
+                            Clear Targets
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6 Target Cards Grid -->
+                <div class="target-cards-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                    <!-- Target 1: Header -->
+                    <label class="target-card" for="target_header" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_header" name="targets[]" value="header" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                                <span>🏷️ Header</span>
+                            </div>
+                            <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                                Corrupts %PDF- magic bytes, signature offsets, or prepends displaced noise prefix.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Target 2: Body -->
+                    <label class="target-card" for="target_body" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_body" name="targets[]" value="body" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                                <span>📄 Body</span>
+                            </div>
+                            <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                                Corrupts content streams, object tags (stream/endstream), and Flate payload data.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Target 3: Reference (XREF) -->
+                    <label class="target-card" for="target_reference" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_reference" name="targets[]" value="reference" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                                <span>🔗 Reference</span>
+                            </div>
+                            <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                                Displaces startxref offsets, damages cross-reference (xref) table indices and relationships.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Target 4: End of File -->
+                    <label class="target-card" for="target_eof" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_eof" name="targets[]" value="end_of_file" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                                <span>🛑 End of File</span>
+                            </div>
+                            <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                                Strips %%EOF marker, corrupts trailer dictionary, or simulates truncated transmission.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Target 5: Images -->
+                    <label class="target-card" for="target_images" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_images" name="targets[]" value="images" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+                                <span>🖼️ Images</span>
+                            </div>
+                            <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+                                Corrupts embedded JPEG SOI/EOI, PNG stream headers, and visual raster asset streams.
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Target 6: ALL SECTIONS -->
+                    <label class="target-card target-card-all" for="target_all" style="cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:14px; background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.35); border-radius:10px; transition:0.2s ease;">
+                        <input type="checkbox" id="target_all" name="targets[]" value="all" class="target-checkbox" style="margin-top:3px; accent-color:#ef4444; width:17px; height:17px;">
+                        <div>
+                            <div style="font-weight:800; font-size:13px; color:#f87171; display:flex; align-items:center; gap:6px;">
+                                <span>💥 ALL SECTIONS</span>
+                                <span style="background:#ef4444; color:#fff; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px;">MAX</span>
+                            </div>
+                            <p style="font-size:11px; color:#fca5a5; margin-top:4px; line-height:1.4;">
+                                Simultaneously corrupts Header + Body + Reference + EOF + Images across the whole file.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+                <button type="submit" id="executeCorruptBtn" class="btn btn-danger btn-pulse" style="flex:2; min-width:220px;" disabled>
+                    <span>⚡ Inject Selected Corruption</span>
+                </button>
+                <button type="button" id="resetFormBtn" class="btn btn-outline-secondary" style="flex:1; min-width:140px;">
+                    <span>🧹 Reset Form</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Live Execution & Progress Bar -->
+    <div id="corruptProgressCard" class="card d-none" style="margin-top:24px; border-left:4px solid #ef4444;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="spinner-border text-danger" style="width:22px; height:22px; border-width:3px;" role="status"></div>
+                <strong id="progressTitle" style="color:#f8fafc; font-size:16px;">Injecting Surgical Corruption...</strong>
+            </div>
+            <span id="progressPercentBadge" style="background:#ef4444; color:#fff; padding:4px 12px; border-radius:12px; font-weight:700; font-size:12px;">In Progress</span>
+        </div>
+
+        <div class="stepper-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:16px;">
+            <div class="step-item step-active" id="cStep1">
+                <div class="step-circle" style="background:#ef4444; color:#fff;">1</div>
+                <div class="step-label">Binary Scan</div>
+            </div>
+            <div class="step-item" id="cStep2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Target Mapping</div>
+            </div>
+            <div class="step-item" id="cStep3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Byte Mutation</div>
+            </div>
+            <div class="step-item" id="cStep4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Audit Log</div>
+            </div>
+        </div>
+
+        <div class="progress" style="height:8px; background:#1e293b; border-radius:4px; overflow:hidden;">
+            <div id="corruptProgressBarFill" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width: 25%;"></div>
+        </div>
+    </div>
+
+    <!-- Result Box (Hidden Until Corrupted) -->
+    <div id="corruptResultBox" class="card d-none" style="margin-top:30px; border-top:3px solid #ef4444;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:16px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:28px;">⚡</span>
+                <div>
+                    <h3 style="font-size:1.3rem; font-weight:800; color:#f8fafc; margin:0;">Document Corruption Successful</h3>
+                    <p id="resultSummaryText" style="color:#94a3b8; font-size:0.9rem; margin:0;">Applied surgical defects to selected structural sections.</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a id="downloadCorruptBtn" href="#" class="btn btn-danger" style="font-size:13px; padding:8px 16px;">
+                    📥 Download Corrupted File
+                </a>
+                <a id="viewReportBtn" href="#" target="_blank" class="btn btn-outline" style="font-size:13px; padding:8px 16px;">
+                    📋 View Full Report
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Details Grid -->
+        <div class="stats-grid" style="margin-bottom:24px;">
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(239, 68, 68, 0.15); color:#ef4444;">📁</span>
+                <div class="stat-content">
+                    <span id="resOrigName" class="stat-value" style="font-size:1.1rem; word-break:break-all;">doc.pdf</span>
+                    <span class="stat-label">Original File</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(239, 68, 68, 0.15); color:#ef4444;">⚡</span>
+                <div class="stat-content">
+                    <span id="resCorrName" class="stat-value" style="font-size:1.1rem; word-break:break-all;">corrupted_doc.pdf</span>
+                    <span class="stat-label">Corrupted Output</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8;">⚖️</span>
+                <div class="stat-content">
+                    <span id="resSizeComp" class="stat-value" style="font-size:1.2rem;">0 B &rarr; 0 B</span>
+                    <span class="stat-label">Size Change</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(16, 185, 129, 0.1); color:#10b981;">🎯</span>
+                <div class="stat-content">
+                    <span id="resTargetCount" class="stat-value" style="font-size:1.4rem;">0</span>
+                    <span class="stat-label">Sections Altered</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Matrix Status -->
+        <div style="margin-bottom:10px;">
+            <h4 style="font-size:1rem; font-weight:700; color:#f8fafc; margin-bottom:12px;">Structural Component Status</h4>
+            <div id="resMatrixGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px;"></div>
+        </div>
+    </div>
+
+    <!-- Corruption Analytics & Audit Log Dashboard -->
+    <div class="recovery-dashboard-wrapper" style="margin-top:40px;">
+        <!-- Header -->
+        <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
+            <div>
+                <h2 class="dashboard-title" style="font-size:1.6rem; font-weight:800; color:#f8fafc; margin:0 0 6px 0;">⚡ Document Corruption Dashboard & Audit Log</h2>
+                <p class="dashboard-subtitle" style="color:#94a3b8; font-size:0.95rem; margin:0;">Real-time corruption event log, target section breakdown, and individual audit record management.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button type="button" id="clearAllCorruptLogsBtn" class="btn btn-outline-danger">
+                    🗑️ Clear All Audit Log
+                </button>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="stats-grid" style="margin-bottom:24px;">
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(239, 68, 68, 0.15); color:#ef4444;">⚡</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statTotal">{{ stats.total_corrupted }}</span>
+                    <span class="stat-label">Total Files Corrupted</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">🏷️</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statHeader">{{ stats.header_count }}</span>
+                    <span class="stat-label">Header Corruptions</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">📄</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statBody">{{ stats.body_count }}</span>
+                    <span class="stat-label">Body Corruptions</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">🔗</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statRef">{{ stats.reference_count }}</span>
+                    <span class="stat-label">Reference (XREF)</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">🛑</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statEof">{{ stats.eof_count }}</span>
+                    <span class="stat-label">End of File (EOF)</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">🖼️</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statImg">{{ stats.images_count }}</span>
+                    <span class="stat-label">Image Stream Corruptions</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon" style="background:rgba(239, 68, 68, 0.2); color:#f87171;">💥</span>
+                <div class="stat-content">
+                    <span class="stat-value" id="statAll">{{ stats.all_count }}</span>
+                    <span class="stat-label">All-Section Corruptions</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supported & Detected File Types Breakdown -->
+        <div class="card dashboard-section" style="padding:20px; margin-bottom:24px;">
+            <h3 class="section-title" style="margin-bottom:12px;">Detected File Type Breakdown</h3>
+            {% if stats.type_breakdown %}
+                <div class="type-tags-container">
+                    {% for ftype, count in stats.type_breakdown.items() %}
+                        <div class="type-tag">
+                            <span class="type-name">{{ ftype }}</span>
+                            <span class="type-badge">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-text" style="color:#94a3b8; font-size:0.9rem; margin:0;">No document corruptions recorded yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Document Corruptions Audit Table -->
+        <div class="card dashboard-section" style="padding:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 class="section-title" style="margin:0;">Recent Document Corruptions Audit Log</h3>
+            </div>
+            
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th class="col-timestamp">Timestamp</th>
+                                <th class="col-filename">Document</th>
+                                <th class="col-type">Detected Type</th>
+                                <th class="col-size">Size (Before → After)</th>
+                                <th class="col-status">Status</th>
+                                <th style="min-width:180px;">Sections Corrupted</th>
+                                <th style="text-align:right; min-width:300px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corruptAuditTableBody">
+                            {% for item in records %}
+                                <tr id="row-{{ item.id }}">
+                                    <td class="mono-text col-timestamp">{{ item.timestamp }}</td>
+                                    <td class="col-filename" title="{{ item.corrupted_filename }}">
+                                        <strong>📄 {{ item.corrupted_filename }}</strong>
+                                        <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Orig: {{ item.original_filename }}</div>
+                                    </td>
+                                    <td class="col-type"><span class="badge badge-meta">{{ item.file_type }}</span></td>
+                                    <td class="col-size">{{ item.original_size_human }} → {{ item.corrupted_size_human }}</td>
+                                    <td class="col-status">
+                                        <span class="badge badge-danger">⚡ CORRUPTED</span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                            {% if item.is_all %}
+                                                <span class="badge badge-danger" style="background:#ef4444; color:#fff; font-weight:800; font-size:10px;">ALL 5 SECTIONS</span>
+                                            {% else %}
+                                                {% for t in item.effective_targets %}
+                                                    <span class="badge" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.3); color:#fca5a5; font-size:10px; font-weight:700;">
+                                                        {% if t == 'header' %}🏷️ Header
+                                                        {% elif t == 'body' %}📄 Body
+                                                        {% elif t == 'reference' %}🔗 Reference
+                                                        {% elif t == 'end_of_file' %}🛑 EOF
+                                                        {% elif t == 'images' %}🖼️ Images
+                                                        {% else %}{{ t }}
+                                                        {% endif %}
+                                                    </span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td style="text-align:right; white-space:nowrap;">
+                                        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+                                            <a href="/api/corrupt/download/{{ item.id }}" class="btn-sm btn-outline" title="Download Corrupted File" download>
+                                                ⬇️ Download
+                                            </a>
+                                            <a href="/api/corrupt/report/{{ item.id }}" target="_blank" class="btn-sm btn-outline" title="View Forensic HTML Report">
+                                                📑 Report
+                                            </a>
+                                            <button type="button" class="btn-sm btn-outline-danger delete-corrupt-btn" 
+                                                    data-id="{{ item.id }}" 
+                                                    data-filename="{{ item.corrupted_filename }}" 
+                                                    title="Delete this file record">
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state" style="text-align:center; padding:40px 20px;">
+                    <div class="empty-icon" style="font-size:3rem; margin-bottom:12px;">⚡</div>
+                    <h4>No Document Corruption Records</h4>
+                    <p style="color:#94a3b8; font-size:0.9rem;">Upload documents above to selectively inject corruption and populate the audit log.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.target-card:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+.target-card.selected {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: #ef4444 !important;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const corruptDropZone = document.getElementById('corruptDropZone');
+    const corruptFileInput = document.getElementById('corruptFileInput');
+    const corruptPrompt = document.getElementById('corruptPrompt');
+    const corruptFilePreview = document.getElementById('corruptFilePreview');
+    const previewFileName = document.getElementById('previewFileName');
+    const previewFileSize = document.getElementById('previewFileSize');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+    const corruptForm = document.getElementById('corruptForm');
+    const executeCorruptBtn = document.getElementById('executeCorruptBtn');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+
+    const selectAllTargetsBtn = document.getElementById('selectAllTargetsBtn');
+    const clearAllTargetsBtn = document.getElementById('clearAllTargetsBtn');
+    const targetCheckboxes = document.querySelectorAll('.target-checkbox');
+    const targetAllCheckbox = document.getElementById('target_all');
+
+    const corruptProgressCard = document.getElementById('corruptProgressCard');
+    const corruptProgressBarFill = document.getElementById('corruptProgressBarFill');
+    const corruptResultBox = document.getElementById('corruptResultBox');
+
+    const clearAllCorruptLogsBtn = document.getElementById('clearAllCorruptLogsBtn');
+    const corruptAuditTableBody = document.getElementById('corruptAuditTableBody');
+
+    let stagedFile = null;
+
+    // --- File Drag & Drop ---
+    corruptDropZone.addEventListener('click', (e) => {
+        if (!e.target.closest('#clearFileBtn')) {
+            corruptFileInput.click();
+        }
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+        corruptDropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            corruptDropZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+        corruptDropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            corruptDropZone.classList.remove('dragover');
+        });
+    });
+
+    corruptDropZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
+    });
+
+    corruptFileInput.addEventListener('change', () => {
+        if (corruptFileInput.files && corruptFileInput.files.length > 0) {
+            handleFileSelection(corruptFileInput.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        stagedFile = file;
+        previewFileName.textContent = file.name;
+        previewFileSize.textContent = formatBytes(file.size);
+        corruptPrompt.classList.add('d-none');
+        corruptFilePreview.classList.remove('d-none');
+        checkCanExecute();
+    }
+
+    clearFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stagedFile = null;
+        corruptFileInput.value = '';
+        corruptPrompt.classList.remove('d-none');
+        corruptFilePreview.classList.add('d-none');
+        checkCanExecute();
+    });
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // --- Targets Selection Logic ---
+    function syncTargetCardStyles() {
+        targetCheckboxes.forEach(cb => {
+            const card = cb.closest('.target-card');
+            if (cb.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+        checkCanExecute();
+    }
+
+    targetAllCheckbox.addEventListener('change', () => {
+        const isChecked = targetAllCheckbox.checked;
+        targetCheckboxes.forEach(cb => {
+            cb.checked = isChecked;
+        });
+        syncTargetCardStyles();
+    });
+
+    targetCheckboxes.forEach(cb => {
+        if (cb !== targetAllCheckbox) {
+            cb.addEventListener('change', () => {
+                const individualCheckboxes = Array.from(targetCheckboxes).filter(c => c !== targetAllCheckbox);
+                const allChecked = individualCheckboxes.every(c => c.checked);
+                targetAllCheckbox.checked = allChecked;
+                syncTargetCardStyles();
+            });
+        }
+    });
+
+    selectAllTargetsBtn.addEventListener('click', () => {
+        targetCheckboxes.forEach(cb => cb.checked = true);
+        syncTargetCardStyles();
+    });
+
+    clearAllTargetsBtn.addEventListener('click', () => {
+        targetCheckboxes.forEach(cb => cb.checked = false);
+        syncTargetCardStyles();
+    });
+
+    function checkCanExecute() {
+        const hasFile = stagedFile !== null;
+        const hasTarget = Array.from(targetCheckboxes).some(cb => cb.checked);
+        executeCorruptBtn.disabled = !(hasFile && hasTarget);
+    }
+
+    resetFormBtn.addEventListener('click', () => {
+        stagedFile = null;
+        corruptFileInput.value = '';
+        corruptPrompt.classList.remove('d-none');
+        corruptFilePreview.classList.add('d-none');
+        targetCheckboxes.forEach(cb => cb.checked = false);
+        syncTargetCardStyles();
+        corruptResultBox.classList.add('d-none');
+        corruptProgressCard.classList.add('d-none');
+    });
+
+    // Default: Keep all targets unselected on load so user chooses manually
+    targetCheckboxes.forEach(cb => cb.checked = false);
+    syncTargetCardStyles();
+
+    // --- Execute Corruption ---
+    corruptForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!stagedFile) return;
+
+        const selectedTargets = [];
+        targetCheckboxes.forEach(cb => {
+            if (cb.checked) selectedTargets.push(cb.value);
+        });
+
+        if (selectedTargets.length === 0) {
+            alert('Please select at least one structural section to corrupt.');
+            return;
+        }
+
+        executeCorruptBtn.disabled = true;
+        corruptResultBox.classList.add('d-none');
+        corruptProgressCard.classList.remove('d-none');
+
+        // Stepper animation
+        animateSteps();
+
+        const formData = new FormData();
+        formData.append('file', stagedFile);
+        selectedTargets.forEach(t => formData.append('targets[]', t));
+
+        try {
+            const resp = await fetch('/api/corrupt/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                throw new Error(data.error || 'Corruption processing failed.');
+            }
+
+            // Finish progress
+            corruptProgressBarFill.style.width = '100%';
+            setTimeout(() => {
+                corruptProgressCard.classList.add('d-none');
+                displayResult(data.data);
+                prependAuditRow(data.data);
+                updateStats();
+            }, 600);
+
+        } catch (err) {
+            corruptProgressCard.classList.add('d-none');
+            alert('Corruption Error: ' + err.message);
+            executeCorruptBtn.disabled = false;
+        }
+    });
+
+    function animateSteps() {
+        const steps = ['cStep1', 'cStep2', 'cStep3', 'cStep4'];
+        let cur = 0;
+        corruptProgressBarFill.style.width = '25%';
+
+        const interval = setInterval(() => {
+            cur++;
+            if (cur < steps.length) {
+                document.getElementById(steps[cur]).classList.add('step-active');
+                corruptProgressBarFill.style.width = ((cur + 1) * 25) + '%';
+            } else {
+                clearInterval(interval);
+            }
+        }, 250);
+    }
+
+    function displayResult(res) {
+        document.getElementById('resultSummaryText').textContent = res.summary;
+        document.getElementById('resOrigName').textContent = res.original_filename;
+        document.getElementById('resCorrName').textContent = res.corrupted_filename;
+        document.getElementById('resSizeComp').textContent = `${res.original_size_human} → ${res.corrupted_size_human}`;
+        document.getElementById('resTargetCount').textContent = res.corrupted_regions.length;
+
+        // Links
+        document.getElementById('downloadCorruptBtn').href = res.download_url;
+        document.getElementById('viewReportBtn').href = res.report_url;
+        
+        // Matrix grid
+        const matrixGrid = document.getElementById('resMatrixGrid');
+        matrixGrid.innerHTML = '';
+        const matrix = res.structure_matrix || {};
+        
+        const regionsMeta = [
+            { key: 'header', label: 'HEADER', icon: '🏷️' },
+            { key: 'body', label: 'BODY', icon: '📄' },
+            { key: 'reference', label: 'REFERENCE', icon: '🔗' },
+            { key: 'end_of_file', label: 'END OF FILE', icon: '🛑' },
+            { key: 'images', label: 'IMAGES', icon: '🖼️' },
+        ];
+
+        regionsMeta.forEach(m => {
+            const isCorrupt = matrix[m.key] === 'CORRUPTED';
+            const card = document.createElement('div');
+            card.style.background = isCorrupt ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.04)';
+            card.style.border = `1px solid ${isCorrupt ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.25)'}`;
+            card.style.borderRadius = '8px';
+            card.style.padding = '10px 12px';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <span style="font-weight:700; font-size:12px; color:#f8fafc;">${m.icon} ${m.label}</span>
+                    <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; ${isCorrupt ? 'background:rgba(239,68,68,0.2); color:#f87171;' : 'background:rgba(16,185,129,0.2); color:#34d399;'}">
+                        ${isCorrupt ? '⚡ CORRUPTED' : '✓ INTACT'}
+                    </span>
+                </div>
+            `;
+            matrixGrid.appendChild(card);
+        });
+
+        corruptResultBox.classList.remove('d-none');
+        corruptResultBox.scrollIntoView({ behavior: 'smooth' });
+        executeCorruptBtn.disabled = false;
+    }
+
+    function prependAuditRow(res) {
+        const emptyRow = document.getElementById('emptyAuditRow');
+        if (emptyRow) emptyRow.remove();
+
+        const tr = document.createElement('tr');
+        tr.id = `row-${res.id}`;
+
+        let targetsHtml = '';
+        if (res.is_all) {
+            targetsHtml = '<span class="badge badge-danger" style="background:#ef4444; color:#fff; font-weight:800; font-size:10px;">ALL 5 SECTIONS</span>';
+        } else {
+            (res.effective_targets || []).forEach(t => {
+                let label = t;
+                if (t === 'header') label = '🏷️ Header';
+                else if (t === 'body') label = '📄 Body';
+                else if (t === 'reference') label = '🔗 Reference';
+                else if (t === 'end_of_file') label = '🛑 EOF';
+                else if (t === 'images') label = '🖼️ Images';
+                targetsHtml += `<span class="badge" style="background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.3); color:#fca5a5; font-size:10px; font-weight:700; margin-right:4px;">${label}</span>`;
+            });
+        }
+
+        const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+        tr.innerHTML = `
+            <td class="mono-text col-timestamp">${now}</td>
+            <td class="col-filename" title="${res.corrupted_filename}">
+                <strong>📄 ${res.corrupted_filename}</strong>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Orig: ${res.original_filename}</div>
+            </td>
+            <td class="col-type"><span class="badge badge-meta">${res.file_type}</span></td>
+            <td class="col-size">${res.original_size_human} → ${res.corrupted_size_human}</td>
+            <td class="col-status">
+                <span class="badge badge-danger">⚡ CORRUPTED</span>
+            </td>
+            <td><div style="display:flex; flex-wrap:wrap; gap:4px;">${targetsHtml}</div></td>
+            <td style="text-align:right; white-space:nowrap;">
+                <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+                    <a href="${res.download_url}" class="btn-sm btn-outline" title="Download Corrupted File" download>
+                        ⬇️ Download
+                    </a>
+                    <a href="${res.report_url}" target="_blank" class="btn-sm btn-outline" title="View Forensic HTML Report">
+                        📑 Report
+                    </a>
+                    <button type="button" class="btn-sm btn-outline-danger delete-corrupt-btn" 
+                            data-id="${res.id}" 
+                            data-filename="${res.corrupted_filename}" 
+                            title="Delete this file record">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </td>
+        `;
+
+        corruptAuditTableBody.prepend(tr);
+        bindDeleteButtons();
+    }
+
+    async function updateStats() {
+        try {
+            const resp = await fetch('/api/corrupt/stats');
+            const data = await resp.json();
+            if (data.success && data.stats) {
+                const s = data.stats;
+                document.getElementById('statTotal').textContent = s.total_corrupted;
+                document.getElementById('statHeader').textContent = s.header_count;
+                document.getElementById('statBody').textContent = s.body_count;
+                document.getElementById('statRef').textContent = s.reference_count;
+                document.getElementById('statEof').textContent = s.eof_count;
+                document.getElementById('statImg').textContent = s.images_count;
+                document.getElementById('statAll').textContent = s.all_count;
+            }
+        } catch (e) {
+            console.error('Failed to update corruption stats', e);
+        }
+    }
+
+    // --- Individual Log Deletion ---
+    function bindDeleteButtons() {
+        document.querySelectorAll('.delete-corrupt-btn').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                const id = btn.dataset.id;
+                const fname = btn.dataset.filename;
+
+                if (!confirm(`Are you sure you want to delete the corruption audit log and physical corrupted file for "${fname}"?`)) {
+                    return;
+                }
+
+                try {
+                    const resp = await fetch(`/api/corrupt/delete/${id}`, { method: 'POST' });
+                    const res = await resp.json();
+                    if (res.success) {
+                        const row = document.getElementById(`row-${id}`);
+                        if (row) {
+                            row.style.transition = '0.3s ease';
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(20px)';
+                            setTimeout(() => {
+                                row.remove();
+                                if (corruptAuditTableBody && corruptAuditTableBody.children.length === 0) {
+                                    window.location.reload();
+                                }
+                            }, 300);
+                        }
+                        updateStats();
+                    } else {
+                        alert('Delete failed: ' + (res.error || 'Unknown error'));
+                    }
+                } catch (err) {
+                    alert('Error deleting corruption record: ' + err.message);
+                }
+            };
+        });
+    }
+
+    bindDeleteButtons();
+
+    // --- Clear All Logs ---
+    clearAllCorruptLogsBtn.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to permanently clear ALL corruption audit logs and delete all stored corrupted files?')) {
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/corrupt/clear-all', { method: 'POST' });
+            const res = await resp.json();
+            if (res.success) {
+                window.location.reload();
+            } else {
+                alert('Clear all failed: ' + (res.error || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Error clearing corruption logs: ' + err.message);
+        }
+    });
+});
+</script>
+{% endblock %}
