@@ -160,8 +160,8 @@ class RecoveryHistoryService:
     @classmethod
     def _save_history(cls, history: list[dict]) -> None:
         file_path = Config.RECOVERY_HISTORY_FILE
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         try:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(history, f, indent=2)
         except Exception:

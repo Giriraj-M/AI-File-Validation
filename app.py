@@ -46,12 +46,17 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # Ensure private upload, recovery, reports, corrupted, and temporary storage folders exist
-ensure_upload_directory(app.config["UPLOAD_FOLDER"])
-ensure_upload_directory(app.config["RECOVERED_FOLDER"])
-ensure_upload_directory(app.config["REPORTS_FOLDER"])
-ensure_upload_directory(app.config["TEMP_CORRUPTED_FOLDER"])
-ensure_upload_directory(app.config["CORRUPTED_FOLDER"])
-ensure_upload_directory(app.config["CORRUPTION_REPORTS_FOLDER"])
+for folder_key in [
+    "UPLOAD_FOLDER",
+    "RECOVERED_FOLDER",
+    "REPORTS_FOLDER",
+    "TEMP_CORRUPTED_FOLDER",
+    "CORRUPTED_FOLDER",
+    "CORRUPTION_REPORTS_FOLDER"
+]:
+    folder_path = app.config.get(folder_key)
+    if folder_path:
+        ensure_upload_directory(folder_path)
 
 
 # =========================================================

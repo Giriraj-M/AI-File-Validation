@@ -47,7 +47,13 @@ def parse_size_string(text: str) -> int | None:
 
 def ensure_upload_directory(folder_path: str) -> None:
     """Creates the upload folder with restricted permissions if it does not exist."""
-    os.makedirs(folder_path, exist_ok=True)
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+    except OSError as e:
+        import logging
+        logging.getLogger("FileGuard").warning(
+            f"Could not create storage directory '{folder_path}': {e}"
+        )
 
 def generate_safe_filename(original_name: str) -> tuple[str, str]:
     """

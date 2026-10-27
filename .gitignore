@@ -59,10 +59,15 @@ instance/uploads/*
 instance/temp_corrupted/*
 instance/recovered_files/*
 instance/reports/*
+instance/corrupted_files/*
+instance/corruption_reports/*
+instance/*.json
 !instance/uploads/.gitkeep
 !instance/temp_corrupted/.gitkeep
 !instance/recovered_files/.gitkeep
 !instance/reports/.gitkeep
+!instance/corrupted_files/.gitkeep
+!instance/corruption_reports/.gitkeep
 
 # Local environment configuration
 .env.local

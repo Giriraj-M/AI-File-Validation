@@ -7,14 +7,47 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# Check if running in a serverless / read-only environment like Vercel or AWS Lambda
+IS_VERCEL = bool(
+    os.environ.get("VERCEL") 
+    or os.environ.get("VERCEL_ENV") 
+    or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+)
+
+if IS_VERCEL:
+    # On Vercel, the app root /var/task is read-only; only /tmp is writable
+    STORAGE_DIR = Path("/tmp") / "ai-file-validation"
+else:
+    STORAGE_DIR = BASE_DIR / "instance"
+
+def _resolve_folder(env_name: str, default_subfolder: str) -> str:
+    env_val = os.environ.get(env_name)
+    if IS_VERCEL:
+        if env_val and (env_val.startswith("/tmp") or env_val.startswith("\\tmp")):
+            return env_val
+        return (STORAGE_DIR / default_subfolder).as_posix()
+    if env_val:
+        p = Path(env_val)
+        return str(p if p.is_absolute() else (BASE_DIR / p))
+    return str(STORAGE_DIR / default_subfolder)
+
+def _resolve_file(env_name: str, default_filename: str) -> str:
+    env_val = os.environ.get(env_name)
+    if IS_VERCEL:
+        if env_val and (env_val.startswith("/tmp") or env_val.startswith("\\tmp")):
+            return env_val
+        return (STORAGE_DIR / default_filename).as_posix()
+    if env_val:
+        p = Path(env_val)
+        return str(p if p.is_absolute() else (BASE_DIR / p))
+    return str(STORAGE_DIR / default_filename)
+
 class Config:
     SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "fileguard-ai-production-secret-change-in-prod-8f9a2b")
+    IS_VERCEL = IS_VERCEL
     
     # Private storage directory for uploaded files (not publicly accessible via static route)
-    UPLOAD_FOLDER = os.environ.get(
-        "UPLOAD_FOLDER", 
-        str(BASE_DIR / "instance" / "uploads")
-    )
+    UPLOAD_FOLDER = _resolve_folder("UPLOAD_FOLDER", "uploads")
     
     # Max content upload length (default: 64MB)
     MAX_CONTENT_LENGTH_MB = int(os.environ.get("MAX_CONTENT_LENGTH_MB", "64"))
@@ -26,38 +59,23 @@ class Config:
     GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
     
     # Folder for recovered/repaired files, reports, and temp storage
-    RECOVERED_FOLDER = os.environ.get(
-        "RECOVERED_FOLDER",
-        str(BASE_DIR / "instance" / "recovered_files")
-    )
-    REPORTS_FOLDER = os.environ.get(
-        "REPORTS_FOLDER",
-        str(BASE_DIR / "instance" / "reports")
-    )
-    TEMP_CORRUPTED_FOLDER = os.environ.get(
-        "TEMP_CORRUPTED_FOLDER",
-        str(BASE_DIR / "instance" / "temp_corrupted")
-    )
+    RECOVERED_FOLDER = _resolve_folder("RECOVERED_FOLDER", "recovered_files")
+    REPORTS_FOLDER = _resolve_folder("REPORTS_FOLDER", "reports")
+    TEMP_CORRUPTED_FOLDER = _resolve_folder("TEMP_CORRUPTED_FOLDER", "temp_corrupted")
     
     # Folder for corrupted files, reports, and temp storage
-    CORRUPTED_FOLDER = os.environ.get(
-        "CORRUPTED_FOLDER",
-        str(BASE_DIR / "instance" / "corrupted_files")
-    )
-    CORRUPTION_REPORTS_FOLDER = os.environ.get(
-        "CORRUPTION_REPORTS_FOLDER",
-        str(BASE_DIR / "instance" / "corruption_reports")
-    )
+    CORRUPTED_FOLDER = _resolve_folder("CORRUPTED_FOLDER", "corrupted_files")
+    CORRUPTION_REPORTS_FOLDER = _resolve_folder("CORRUPTION_REPORTS_FOLDER", "corruption_reports")
 
     # Recovery Execution Limits
     MAX_RECOVERY_ATTEMPTS = int(os.environ.get("MAX_RECOVERY_ATTEMPTS", "7"))
     RECOVERY_TIMEOUT_SECONDS = int(os.environ.get("RECOVERY_TIMEOUT_SECONDS", "120"))
     
     # History storage
-    HISTORY_FILE = str(BASE_DIR / "instance" / "validation_history.json")
-    RECOVERY_HISTORY_FILE = str(BASE_DIR / "instance" / "recovery_history.json")
-    CORRUPTION_HISTORY_FILE = str(BASE_DIR / "instance" / "corruption_history.json")
-    BATCH_HISTORY_FILE = str(BASE_DIR / "instance" / "batch_history.json")
+    HISTORY_FILE = _resolve_file("HISTORY_FILE", "validation_history.json")
+    RECOVERY_HISTORY_FILE = _resolve_file("RECOVERY_HISTORY_FILE", "recovery_history.json")
+    CORRUPTION_HISTORY_FILE = _resolve_file("CORRUPTION_HISTORY_FILE", "corruption_history.json")
+    BATCH_HISTORY_FILE = _resolve_file("BATCH_HISTORY_FILE", "batch_history.json")
     
     # Supported File Types Configuration (Central Source of Truth)
     FILE_TYPES = {
