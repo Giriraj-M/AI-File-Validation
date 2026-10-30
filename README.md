@@ -10,7 +10,7 @@ Instead of configuring dozens of checkboxes or guessing why a document failed, y
 > *"Surgically corrupt the XREF table and header to benchmark our parser's fault tolerance."*  
 > *"Check for hidden malware, prompt injections, or corrupted binary streams."*
 
-FileGuard AI V3 understands your requirements using artificial intelligence (**Google Gemini 3.5 Flash** with an offline deterministic NLP fallback), executes strict multi-layer backend checks, benchmarks document resilience via a **controlled surgical corruption engine**, and features a **deterministic 7-tier recovery engine** that repairs corrupted documents (**PDF, Word, Excel, PowerPoint, Images, CSV, and Text**) without ever generating fake or blank documents.
+FileGuard AI V3 understands your requirements using artificial intelligence (**Google Gemini 3.5 Flash** with an offline deterministic NLP fallback), executes strict multi-layer backend checks, benchmarks document resilience via a **controlled surgical corruption engine**, and features a **deterministic 7-tier recovery engine** that repairs corrupted documents (**PDF, Word, Excel, PowerPoint, Images, CSV, JSON, and Text**) without ever generating fake or blank documents. It is fully serverless-ready with automated `/tmp` ephemeral storage adaptation for Vercel and AWS Lambda deployments.
 
 ---
 
@@ -31,7 +31,7 @@ Traditional file upload forms only check the file extension (like `.pdf` or `.do
 |:---|:---|
 | **Trust file extensions**: Relies on `.pdf` or `.xlsx` in the file name, easily fooled by renamed files. | **Inspects true binary bytes**: Scans raw header signatures to detect the authentic format regardless of extension. |
 | **Rigid configuration**: Requires complex dropdowns, multi-step wizards, and fixed form rules. | **Natural language prompts**: Understands flexible instructions in plain English using Gemini AI or offline NLP. |
-| **No resilience benchmarking**: Cannot systematically test parser error handling or resilience. | **Dedicated Corruption Studio (`/corrupt`)**: Surgically injects localized defects across Header, Body, XREF, Trailer, and EOF. |
+| **No resilience benchmarking**: Cannot systematically test parser error handling or resilience. | **Dedicated Corruption Studio (`/corrupt`)**: Surgically injects localized defects across Header, Body, XREF, Trailer, EOF, and Media. |
 | **Misses corruption & rejects broken files**: Fails silently or rejects corrupted documents with no repair option. | **Forensic diagnosis & multi-strategy repair**: Pinpoints corruption regions and automatically recovers damaged files. |
 | **Emits fake blank files**: Primitive repair scripts create empty or unreadable dummy documents. | **Authentic content salvage**: Strict anti-blank gates guarantee genuine data recovery or accurate `UNRECOVERABLE` warnings. |
 | **Ignores security threats**: Does not scan document text for hidden malicious directives or data leaks. | **Content security checks**: Scans for disguised PE/ELF executables, prompt injections, and leaked PII/credentials. |
@@ -50,6 +50,7 @@ FileGuard AI V3 is built on a battle-tested stack of forensic document inspectio
 - **FastAPI & Uvicorn**: High-concurrency microservice routing and asynchronous event utilities.
 - **Python-Dotenv**: Multi-environment secrets and runtime configuration management.
 - **Requests & HTTPX**: Synchronous and asynchronous HTTP client engines for external API communication.
+- **Serverless / Vercel Adapter**: Dynamic path resolver redirecting persistent writes to `/tmp/ai-file-validation` in read-only serverless cloud runtimes.
 
 ### 2. Artificial Intelligence & NLP
 - **Google Gemini API (`google-generativeai`)**: Powered by `gemini-3.5-flash` for conversational requirement parsing, contextual explanations, and document categorization.
@@ -77,7 +78,7 @@ FileGuard AI V3 is built on a battle-tested stack of forensic document inspectio
 - **Vanilla JavaScript (ES6+)**: Pure client-side controller handling drag-and-drop file inputs, asynchronous multi-part uploads, live progress bars, modal previews, and ZIP streaming.
 
 ### 6. Testing & Quality Assurance
-- **pytest (8.0+)**: Automated testing framework powering the 99-test suite covering corruption, recovery, security, and validation pipelines.
+- **pytest (8.0+)**: Automated testing framework powering the 101-test suite covering corruption, recovery, security, and validation pipelines.
 
 ---
 
@@ -201,6 +202,7 @@ FileGuard AI recognizes, validates, corrupts, and recovers the following file fo
 | **Images** | JPEG, PNG, GIF, WebP | `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp` | Header signature checks, CRC repair, truncated pixel stream rendering via Pillow. |
 | **Text Documents**| Plain Text Files | `.txt` | Character encoding verification (UTF-8/Latin-1) and binary null-byte demuxing. |
 | **Spreadsheets** | Comma-Separated Values | `.csv` | UTF-8 validation, delimiter alignment, and broken row structure normalization. |
+| **Data Formats** | JavaScript Object Notation | `.json` | UTF-8 parsing, syntax balancing, structural key validation. |
 | **Archives** | ZIP Compressed Folders | `.zip` | Standard PK archive header and central directory CRC checksum repair. |
 
 ---
@@ -210,99 +212,106 @@ FileGuard AI recognizes, validates, corrupts, and recovers the following file fo
 ```
 AI File Validation V3/
 │
-├── config.py                 # Central configuration (file types, signatures, limits, env variables)
-├── app.py                    # Flask application entry point, routing, error handlers, REST APIs
-├── requirements.txt          # Python dependencies
-├── .env                      # Local environment configuration (API keys, secrets, thresholds)
-├── README.md                 # Project documentation
+├── config.py                     # Central configuration (file types, signatures, serverless/Vercel paths)
+├── app.py                        # Flask application entry point, routing, error handlers, REST APIs
+├── requirements.txt              # Python runtime dependencies
+├── .env                          # Local environment configuration (API keys, secrets, thresholds)
+├── README.md                     # Comprehensive project documentation
 │
-├── services/                 # Core business logic, forensic analyzers, and recovery engines
-│   ├── __init__.py           # Services package exporter
-│   ├── ai_service.py         # Google Gemini integration, NLP prompt parsing, document classification
-│   ├── corruption_service.py # Controlled surgical document corruption engine
-│   ├── corruption_classifier.py # Regional localization (Header, Body, XREF, EOF, Media)
-│   ├── corruption_report_service.py # Diagnostic JSON and HTML corruption reports
+├── services/                     # Core business logic, forensic analyzers, and recovery engines
+│   ├── __init__.py               # Services package exporter
+│   ├── ai_service.py             # Google Gemini integration, NLP prompt parsing, document classification
+│   ├── corruption_classifier.py  # Regional localization (Header, Body, XREF, EOF, Media)
 │   ├── corruption_history_service.py # Corruption audit log and metrics persistence
-│   ├── detector.py           # Magic byte and dangerous binary signature scanner
+│   ├── corruption_report_service.py # Diagnostic JSON and HTML corruption reports
+│   ├── corruption_service.py     # Controlled surgical document corruption engine
+│   ├── detector.py               # Magic byte and dangerous binary signature scanner
+│   ├── document_service.py       # Multi-format document text extraction
+│   ├── docx_analyzer.py          # DOCX XML and package inspector
+│   ├── docx_recovery.py          # DOCX ZIP and XML element reconstruction
+│   ├── file_analysis_service.py  # Deep byte-level binary diagnostics
 │   ├── file_detection_service.py # Binary signature matching and format verification
-│   ├── file_analysis_service.py # Deep byte-level binary diagnostics
+│   ├── history_service.py        # Validation audit history persistence
+│   ├── image_analyzer.py         # JPEG/PNG header and chunk analyzer
+│   ├── image_recovery.py         # Permissive raster graphic recovery
+│   ├── integrity_service.py      # Pre- and post-recovery file health inspection
+│   ├── pdf_analyzer.py           # PDF structural parser and diagnostics
+│   ├── pdf_body_recovery.py      # PDF object stream and deflate salvager
+│   ├── pdf_eof_recovery.py       # PDF trailer injection and EOF stabilizer
+│   ├── pdf_header_recovery.py    # PDF header realignment and magic byte repair
+│   ├── pdf_image_recovery.py     # Embedded raster stream carver (JPEG/PNG)
+│   ├── pdf_recovery.py           # 7-tier progressive PDF recovery engine
+│   ├── pdf_xref_recovery.py      # PDF cross-reference table synthesizer
+│   ├── pptx_analyzer.py          # PPTX presentation slide analyzer
+│   ├── pptx_recovery.py          # PPTX slide text and shape carver
 │   ├── recovery_decision_service.py # Adaptive tool selection and fallback planning
-│   ├── recovery_engine.py    # Unified recovery orchestrator
-│   ├── recovery_report.py    # Interactive HTML and JSON audit report generator
-│   ├── recovery_service.py   # High-level recovery workflow coordinator
+│   ├── recovery_engine.py        # Unified recovery orchestrator
 │   ├── recovery_history_service.py # Recovery audit log persistence
-│   ├── tool_manager.py       # External binary inspection (QPDF, PyMuPDF, etc.)
-│   ├── tool_registry.py      # Registered recovery tools catalog
-│   ├── tool_recommender.py   # Contextual tool recommendation engine
-│   ├── security_service.py   # Path traversal, prompt injection, and PII scanning
-│   ├── integrity_service.py  # Pre- and post-recovery file health inspection
-│   ├── validation_service.py # Master orchestrator coordinating all validation layers
-│   ├── validator.py          # Ground-truth post-recovery fidelity validator
-│   ├── document_service.py   # Multi-format document text extraction
-│   ├── pdf_analyzer.py       # PDF structural parser and diagnostics
-│   ├── pdf_recovery.py       # 7-tier progressive PDF recovery engine
-│   ├── pdf_header_recovery.py # PDF header realignment and magic byte repair
-│   ├── pdf_body_recovery.py  # PDF object stream and deflate salvager
-│   ├── pdf_xref_recovery.py  # PDF cross-reference table synthesizer
-│   ├── pdf_eof_recovery.py   # PDF trailer injection and EOF stabilizer
-│   ├── pdf_image_recovery.py # Embedded raster stream carver (JPEG/PNG)
-│   ├── docx_analyzer.py      # DOCX XML and package inspector
-│   ├── docx_recovery.py      # DOCX ZIP and XML element reconstruction
-│   ├── xlsx_analyzer.py      # XLSX sheet and shared strings inspector
-│   ├── xlsx_recovery.py      # XLSX spreadsheet reconstructor
-│   ├── pptx_analyzer.py      # PPTX presentation slide analyzer
-│   ├── pptx_recovery.py      # PPTX slide text and shape carver
-│   ├── image_analyzer.py     # JPEG/PNG header and chunk analyzer
-│   ├── image_recovery.py     # Permissive raster graphic recovery
-│   └── text_recovery.py      # Plain text and CSV encoding/noise demuxer
+│   ├── recovery_report.py        # Interactive HTML and JSON audit report generator
+│   ├── recovery_service.py       # High-level recovery workflow coordinator
+│   ├── recovery_tool_registry.py # Tool registration and dynamic discovery
+│   ├── recovery_validator.py     # Content salvage validation gates (anti-blank enforcement)
+│   ├── security_service.py       # Path traversal, prompt injection, and PII scanning
+│   ├── text_recovery.py          # Plain text and CSV encoding/noise demuxer
+│   ├── tool_manager.py           # External binary inspection (QPDF, PyMuPDF, etc.)
+│   ├── tool_recommender.py       # Contextual tool recommendation engine
+│   ├── tool_registry.py          # Registered recovery tools catalog
+│   ├── validation_service.py     # Master orchestrator coordinating all validation layers
+│   ├── validator.py              # Ground-truth post-recovery fidelity validator
+│   ├── xlsx_analyzer.py          # XLSX sheet and shared strings inspector
+│   └── xlsx_recovery.py          # XLSX spreadsheet reconstructor
 │
-├── utils/                    # Shared helper utilities
+├── utils/                        # Shared helper utilities
 │   ├── __init__.py
-│   └── file_utils.py         # Safe filename generation (UUID), size formatting, cleanup
+│   ├── archive_utils.py          # Multi-file ZIP archive creation and extraction utilities
+│   ├── file_utils.py             # Safe filename generation (UUID), size formatting, cleanup
+│   └── process_utils.py          # Subprocess runner and execution timeout management
 │
-├── templates/                # Jinja2 HTML templates
-│   ├── base.html             # Common layout, navigation bar, footer, and styling links
-│   ├── index.html            # Main AI Assistant interface with drag-and-drop & preset prompts
-│   ├── dashboard.html        # Security & audit log dashboard with metrics and type charts
-│   ├── corrupt.html          # Controlled Document Corruption Studio
-│   └── recover.html          # Multi-file Document Recovery Workbench
+├── templates/                    # Jinja2 HTML templates
+│   ├── base.html                 # Common layout, navigation bar, footer, and styling links
+│   ├── index.html                # Main AI Assistant interface with drag-and-drop & preset prompts
+│   ├── dashboard.html            # Security & audit log dashboard with metrics and type charts
+│   ├── corrupt.html              # Controlled Document Corruption Studio
+│   └── recover.html              # Multi-file Document Recovery Workbench
 │
-├── static/                   # Static frontend assets (CSS, JS, icons)
+├── static/                       # Static frontend assets (CSS, JS, icons)
 │   ├── css/
-│   │   └── style.css         # Dark-theme stylesheet with glassmorphic cards and responsive layouts
+│   │   └── style.css             # Dark-theme stylesheet with glassmorphic cards and responsive layouts
 │   └── js/
-│       └── app.js            # Asynchronous file upload, live progress steps, dynamic rendering
+│       └── app.js                # Asynchronous file upload, live progress steps, dynamic rendering
 │
-├── tests/                    # Automated pytest test suite (99 passing tests)
-│   ├── conftest.py           # Pytest fixtures and test environment setup
-│   ├── test_ai_service.py    # AI recommendation and injection tests
-│   ├── test_batch_recovery.py # Multi-file batch recovery and ZIP export tests
+├── tests/                        # Automated pytest test suite (101 passing tests)
+│   ├── __init__.py
+│   ├── conftest.py               # Pytest fixtures and test environment setup
+│   ├── test_ai_service.py        # AI recommendation and injection tests
+│   ├── test_batch_recovery.py    # Multi-file batch recovery and ZIP export tests
 │   ├── test_file_corruption_studio.py # Corruption studio endpoints and section tests
-│   ├── test_file_detection.py # File detection and disguised executable tests
+│   ├── test_file_detection.py    # File detection and disguised executable tests
 │   ├── test_fileguard_corruption_recovery.py # End-to-end recovery pipeline tests
-│   ├── test_image_recovery.py # JPEG and PNG image salvage tests
-│   ├── test_integrity.py     # Document integrity and health tests
+│   ├── test_image_recovery.py    # JPEG and PNG image salvage tests
+│   ├── test_integrity.py         # Document integrity and health tests
 │   ├── test_intelligent_pdf_pipeline.py # PDF classification and confidence tests
 │   ├── test_modular_corruption_recovery.py # Regional corruption recovery tests
 │   ├── test_pdf_comprehensive_recovery.py # 11 controlled PDF structural damage tests
-│   ├── test_pptx_recovery.py # PowerPoint slide recovery tests
-│   ├── test_recovery.py      # Non-blank recovery verification tests
-│   ├── test_security.py      # Path traversal, PII, and injection tests
-│   ├── test_tool_selection.py # Dynamic tool manager and fallback tests
-│   ├── test_validation.py    # Deterministic validation test cases
-│   └── test_xlsx_recovery.py # Excel spreadsheet recovery tests
+│   ├── test_pptx_recovery.py     # PowerPoint slide recovery tests
+│   ├── test_recovery.py          # Non-blank recovery verification tests
+│   ├── test_security.py          # Path traversal, PII, and injection tests
+│   ├── test_tool_selection.py    # Dynamic tool manager and fallback tests
+│   ├── test_validation.py        # Deterministic validation test cases
+│   ├── test_vercel_storage.py    # Vercel/serverless ephemeral path and storage tests
+│   └── test_xlsx_recovery.py     # Excel spreadsheet recovery tests
 │
-└── instance/                 # Runtime application data (ignored in version control)
-    ├── uploads/              # Isolated temporary upload folder (files auto-cleaned)
-    ├── corrupted_files/      # Generated corrupted document artifacts
-    ├── corruption_reports/   # Diagnostic JSON and HTML corruption reports
-    ├── recovered_files/      # Restored files and generated batch ZIP archives
-    ├── reports/              # HTML and JSON recovery audit reports
-    ├── temp_corrupted/       # Diagnostic cache for recovery workbench
-    ├── validation_history.json # Local validation audit log storage
-    ├── recovery_history.json # Local recovery audit log storage
-    ├── corruption_history.json # Local corruption audit log storage
-    └── batch_history.json    # Local batch recovery audit log storage
+└── instance/                     # Runtime application data (ignored in version control)
+    ├── uploads/                  # Isolated temporary upload folder (files auto-cleaned)
+    ├── corrupted_files/          # Generated corrupted document artifacts
+    ├── corruption_reports/       # Diagnostic JSON and HTML corruption reports
+    ├── recovered_files/          # Restored files and generated batch ZIP archives
+    ├── reports/                  # HTML and JSON recovery audit reports
+    ├── temp_corrupted/           # Diagnostic cache for recovery workbench
+    ├── validation_history.json   # Local validation audit log storage
+    ├── recovery_history.json     # Local recovery audit log storage
+    ├── corruption_history.json   # Local corruption audit log storage
+    └── batch_history.json        # Local batch recovery audit log storage
 ```
 
 ---
@@ -317,13 +326,19 @@ AI File Validation V3/
 1. Open a terminal in the project folder.
 2. Create and activate a Python virtual environment:
    - **On Windows**:  
-     `python -m venv venv`  
-     `.\venv\Scripts\activate`
+     ```powershell
+     python -m venv venv
+     .\venv\Scripts\activate
+     ```
    - **On Mac/Linux**:  
-     `python3 -m venv venv`  
-     `source venv/bin/activate`
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
 3. Install the dependencies:
-   `pip install -r requirements.txt`
+   ```bash
+   pip install -r requirements.txt
+   ```
 4. Configure `.env` with your settings (add your Gemini API key if you want conversational AI explanations).
 
 ### 3. Optional: Install QPDF
@@ -334,7 +349,9 @@ FileGuard AI automatically detects QPDF if available, or falls back to internal 
 
 ### 4. Run the App
 Start the application by running:
-`python app.py`
+```bash
+python app.py
+```
 
 ### 5. Open in Browser
 - **Validation Assistant**: Open `http://127.0.0.1:5000` in your web browser.
@@ -346,23 +363,23 @@ Start the application by running:
 
 ## Configuration Options
 
-All settings are controlled through the `.env` file:
+All settings are controlled through the `.env` file and central `config.py`:
 
 | Setting | Default Value | What It Does |
 |:---|:---|:---|
-| **FLASK_ENV** | development | Runs the app in development or production mode. |
-| **FLASK_SECRET_KEY** | Internal key | Key used to encrypt session data and cookies. |
-| **UPLOAD_FOLDER** | instance/uploads | Private server folder where files are placed during processing. |
-| **CORRUPTED_FOLDER** | instance/corrupted_files | Storage directory for generated corrupted document artifacts. |
-| **CORRUPTION_REPORTS_FOLDER**| instance/corruption_reports| Storage directory for corruption diagnostic reports. |
-| **RECOVERED_FOLDER** | instance/recovered_files | Storage directory for repaired files and batch ZIP archives. |
-| **REPORTS_FOLDER** | instance/reports | Storage folder for generated HTML and JSON recovery reports. |
-| **MAX_CONTENT_LENGTH_MB** | 64 | Global maximum file upload size (in MB). |
-| **AI_PROVIDER** | gemini | Uses Google Gemini for prompt parsing. Falls back to offline NLP if no key is set. |
+| **FLASK_ENV** | `development` | Runs the app in development or production mode. |
+| **FLASK_SECRET_KEY** | Internal default | Key used to encrypt session data and cookies. |
+| **UPLOAD_FOLDER** | `instance/uploads` | Private server folder where files are placed during processing. Auto-routes to `/tmp/ai-file-validation/uploads` in serverless runtimes. |
+| **CORRUPTED_FOLDER** | `instance/corrupted_files` | Storage directory for generated corrupted document artifacts. |
+| **CORRUPTION_REPORTS_FOLDER**| `instance/corruption_reports`| Storage directory for corruption diagnostic reports. |
+| **RECOVERED_FOLDER** | `instance/recovered_files` | Storage directory for repaired files and batch ZIP archives. |
+| **REPORTS_FOLDER** | `instance/reports` | Storage folder for generated HTML and JSON recovery reports. |
+| **MAX_CONTENT_LENGTH_MB** | `64` | Global maximum file upload size (in MB). |
+| **AI_PROVIDER** | `gemini` | Uses Google Gemini for prompt parsing. Falls back to offline NLP if no key is set. |
 | **GEMINI_API_KEY** | (Optional) | Your Google Gemini API key. If left blank, the built-in offline NLP engine works automatically. |
-| **GEMINI_MODEL** | gemini-3.5-flash | Gemini model used for natural language processing and explanations. |
-| **MAX_RECOVERY_ATTEMPTS**| 7 | Maximum number of progressive recovery strategies attempted per file. |
-| **RECOVERY_TIMEOUT_SECONDS** | 120 | Maximum time allowed per recovery job before timing out. |
+| **GEMINI_MODEL** | `gemini-3.5-flash` | Gemini model used for natural language processing and explanations. |
+| **MAX_RECOVERY_ATTEMPTS**| `7` | Maximum number of progressive recovery strategies attempted per file. |
+| **RECOVERY_TIMEOUT_SECONDS** | `120` | Maximum time allowed per recovery job before timing out. |
 | **QPDF_PATH** | (Auto-detected) | Optional explicit path to the `qpdf` executable. |
 
 ---
@@ -460,26 +477,30 @@ For developers integrating FileGuard AI V3 into external workflows:
 - **URL**: `GET /api/history` — Returns recent validation records.
 - **URL**: `GET /api/stats` — Returns validation counts, pass/fail ratios, and type distribution.
 - **URL**: `GET /api/corrupt/stats` — Returns corruption studio operations and breakdown.
-- **URL**: `GET /api/tools` — Returns status of registered tools and external dependencies.
+- **URL**: `GET /api/corrupt/history` — Returns corruption studio audit logs.
+- **URL**: `GET /api/tools` & `GET /api/tools/status` — Returns status of registered tools and external dependencies.
 - **URL**: `POST /api/clear-history` — Clears validation audit logs.
 - **URL**: `POST /api/corrupt/clear-all` — Clears generated corrupted files.
 - **URL**: `POST /api/recover/clear-all` — Clears generated recovered files.
+- **URL**: `POST /api/clean-temp` — Cleans up temporary diagnostic files.
 
 ---
 
-## Automated Test Suite (99 Passing Tests)
+## Automated Test Suite (101 Passing Tests)
 
-FileGuard AI V3 includes an extensive automated test suite using **pytest** with **99 unit and integration tests** passing with 100% success:
+FileGuard AI V3 includes an extensive automated test suite using **pytest** with **101 unit and integration tests** passing with 100% success across 18 test modules:
 
-To run the tests:
-- Run `python -m pytest -v` in your terminal.
+To run the full suite:
+```bash
+python -m pytest -v
+```
 
 ### What the tests cover:
-- **Controlled Corruption Studio Tests**:
+- **Controlled Corruption Studio Tests (`test_file_corruption_studio.py`)**:
   - Surgical corruption by section (Header, Body, XREF, Trailer, EOF)
   - Defect intensity and multi-defect application
-  - Diagnostic corruption report generation
-- **11 Controlled PDF Structural Damage Tests**:
+  - Diagnostic corruption report generation and download endpoints
+- **11 Controlled PDF Structural Damage Tests (`test_pdf_comprehensive_recovery.py`)**:
   - Missing EOF injection (`%%EOF`)
   - Damaged `startxref` offset recalculation
   - Damaged cross-reference table (`xref`) reconstruction
@@ -491,20 +512,35 @@ To run the tests:
   - Multiple simultaneous structural corruptions
   - Accurate rejection of 0-byte files (`UNRECOVERABLE`)
   - Accurate rejection of pure random noise (`UNRECOVERABLE`)
-- **DOCX, XLSX & PPTX Forensics**:
+- **End-to-End Recovery & Ground Truth (`test_fileguard_corruption_recovery.py`, `test_recovery.py`)**:
+  - Full workflow execution and non-blank recovery verification
+  - Regional corruption analysis and recommended tools
+  - History lifecycle and reporting
+- **Intelligent PDF Pipeline (`test_intelligent_pdf_pipeline.py`)**:
+  - Regional classification confidence scoring
+  - Automated strategy progression and report asset serving
+- **Modular Corruption Recovery (`test_modular_corruption_recovery.py`)**:
+  - Individual header, body, xref, and eof recovery validation
+  - Embedded raster image corruption recovery
+  - Tool manager status and unified system interfaces
+- **DOCX, XLSX & PPTX Forensics (`test_xlsx_recovery.py`, `test_pptx_recovery.py`)**:
   - ZIP central directory repair
   - Broken `document.xml` parsing
-  - Shifted spreadsheet header recovery
+  - Shifted spreadsheet header recovery and empty sheet protection
   - PowerPoint slide shape text salvage
-- **Image Salvage**:
+- **Image Salvage (`test_image_recovery.py`)**:
   - Truncated JPEG rendering
   - Embedded raster image extraction from corrupted PDFs
-- **Security Scans**:
-  - Disguised executables (`.exe` renamed to `.pdf`)
+  - Random noise image rejection
+- **Security Scans (`test_security.py`, `test_file_detection.py`)**:
+  - Disguised executables (`.exe`, ELF, Mach-O disguised as `.pdf` or `.docx`)
   - Path traversal attacks (`../`)
   - Prompt injection attack defense
   - Sensitive PII and credential leak detection
-- **Batch Processing & System Interfaces**:
+- **Serverless & Environment Tests (`test_vercel_storage.py`)**:
+  - Dynamic path resolution for `/tmp` storage in read-only environments
+  - Graceful handling of OS write permissions and directory creation
+- **Batch Processing & System Interfaces (`test_batch_recovery.py`, `test_tool_selection.py`)**:
   - Multi-file batch recovery and ZIP export
   - Pre-analysis tool recommendations
   - Dynamic tool inspection and cache cleanup
